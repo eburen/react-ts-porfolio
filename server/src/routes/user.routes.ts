@@ -1,9 +1,15 @@
 import express from 'express';
 import { protect, admin } from '../middleware/auth.middleware';
+import { getWishlist, addToWishlist, removeFromWishlist } from '../controllers/wishlist.controller';
 
 const router = express.Router();
 
-// We'll implement these controllers later
+// Wishlist routes - these need to come before the parameterized routes
+router.get('/wishlist', protect, getWishlist);
+router.post('/wishlist', protect, addToWishlist);
+router.delete('/wishlist/:productId', protect, removeFromWishlist);
+
+// User management routes
 router.get('/', protect, admin, (req, res) => {
   res.json({ message: 'Get all users - to be implemented' });
 });
