@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import {
   Box,
@@ -38,7 +38,7 @@ const ProductReviews: React.FC<ProductReviewsProps> = ({ productId }) => {
   const dispatch = useDispatch<AppDispatch>();
   const { user } = useSelector((state: RootState) => state.auth);
   const { reviews, loading, error, success } = useSelector((state: RootState) => state.reviews);
-  
+
   const [rating, setRating] = useState<number | null>(0);
   const [comment, setComment] = useState('');
   const [editReviewId, setEditReviewId] = useState<string | null>(null);
@@ -61,11 +61,11 @@ const ProductReviews: React.FC<ProductReviewsProps> = ({ productId }) => {
       setComment('');
       setEditReviewId(null);
       setShowReviewForm(false);
-      
+
       const timer = setTimeout(() => {
         dispatch(clearReviewSuccess());
       }, 3000);
-      
+
       return () => clearTimeout(timer);
     }
   }, [success, dispatch]);
@@ -75,18 +75,18 @@ const ProductReviews: React.FC<ProductReviewsProps> = ({ productId }) => {
       const timer = setTimeout(() => {
         dispatch(clearReviewError());
       }, 5000);
-      
+
       return () => clearTimeout(timer);
     }
   }, [error, dispatch]);
 
   const handleSubmitReview = (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!rating) {
       return;
     }
-    
+
     if (editReviewId) {
       dispatch(updateProductReview({
         reviewId: editReviewId,
@@ -132,10 +132,10 @@ const ProductReviews: React.FC<ProductReviewsProps> = ({ productId }) => {
   };
 
   const formatDate = (dateString: string) => {
-    const options: Intl.DateTimeFormatOptions = { 
-      year: 'numeric', 
-      month: 'long', 
-      day: 'numeric' 
+    const options: Intl.DateTimeFormatOptions = {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
     };
     return new Date(dateString).toLocaleDateString(undefined, options);
   };
@@ -149,34 +149,34 @@ const ProductReviews: React.FC<ProductReviewsProps> = ({ productId }) => {
       <Typography variant="h5" gutterBottom>
         Customer Reviews
       </Typography>
-      
+
       <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
         <Rating value={averageRating} precision={0.5} readOnly />
         <Typography variant="body1" sx={{ ml: 1 }}>
           {averageRating.toFixed(1)} out of 5 ({reviews.length} {reviews.length === 1 ? 'review' : 'reviews'})
         </Typography>
       </Box>
-      
+
       {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
       {success && <Alert severity="success" sx={{ mb: 2 }}>Review submitted successfully!</Alert>}
-      
+
       {canReview && (
-        <Button 
-          variant="outlined" 
+        <Button
+          variant="outlined"
           onClick={() => setShowReviewForm(true)}
           sx={{ mb: 3 }}
         >
           Write a Review
         </Button>
       )}
-      
+
       {(showReviewForm || userReview && editReviewId) && (
         <Card variant="outlined" sx={{ mb: 3 }}>
           <CardContent>
             <Typography variant="h6" gutterBottom>
               {editReviewId ? 'Edit Your Review' : 'Write a Review'}
             </Typography>
-            
+
             <form onSubmit={handleSubmitReview}>
               <Box sx={{ mb: 2 }}>
                 <Typography component="legend">Rating</Typography>
@@ -189,7 +189,7 @@ const ProductReviews: React.FC<ProductReviewsProps> = ({ productId }) => {
                   size="large"
                 />
               </Box>
-              
+
               <TextField
                 fullWidth
                 label="Your Review"
@@ -199,10 +199,10 @@ const ProductReviews: React.FC<ProductReviewsProps> = ({ productId }) => {
                 onChange={(e) => setComment(e.target.value)}
                 sx={{ mb: 2 }}
               />
-              
+
               <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
-                <Button 
-                  variant="outlined" 
+                <Button
+                  variant="outlined"
                   onClick={() => {
                     setShowReviewForm(false);
                     setEditReviewId(null);
@@ -213,8 +213,8 @@ const ProductReviews: React.FC<ProductReviewsProps> = ({ productId }) => {
                 >
                   Cancel
                 </Button>
-                <Button 
-                  type="submit" 
+                <Button
+                  type="submit"
                   variant="contained"
                   disabled={!rating || loading}
                 >
@@ -225,9 +225,9 @@ const ProductReviews: React.FC<ProductReviewsProps> = ({ productId }) => {
           </CardContent>
         </Card>
       )}
-      
+
       <Divider sx={{ my: 2 }} />
-      
+
       {loading && reviews.length === 0 ? (
         <Box sx={{ display: 'flex', justifyContent: 'center', my: 4 }}>
           <CircularProgress />
@@ -252,17 +252,17 @@ const ProductReviews: React.FC<ProductReviewsProps> = ({ productId }) => {
                         </Typography>
                       </Box>
                     </Box>
-                    
+
                     {user && user.id === review.user._id && (
                       <Box>
-                        <IconButton 
-                          size="small" 
+                        <IconButton
+                          size="small"
                           onClick={() => handleEditReview(review)}
                         >
                           <EditIcon fontSize="small" />
                         </IconButton>
-                        <IconButton 
-                          size="small" 
+                        <IconButton
+                          size="small"
                           color="error"
                           onClick={() => handleOpenDeleteConfirm(review._id)}
                         >
@@ -271,7 +271,7 @@ const ProductReviews: React.FC<ProductReviewsProps> = ({ productId }) => {
                       </Box>
                     )}
                   </Box>
-                  
+
                   <Box sx={{ mt: 1 }}>
                     <Rating value={review.rating} readOnly size="small" />
                     <Typography variant="body1" sx={{ mt: 1 }}>
@@ -284,7 +284,7 @@ const ProductReviews: React.FC<ProductReviewsProps> = ({ productId }) => {
           ))}
         </Grid>
       )}
-      
+
       {/* Delete Confirmation Dialog */}
       <Dialog open={deleteConfirmOpen} onClose={handleCloseDeleteConfirm}>
         <DialogTitle>Delete Review</DialogTitle>

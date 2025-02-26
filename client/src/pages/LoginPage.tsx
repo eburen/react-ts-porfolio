@@ -1,12 +1,12 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate, Link } from 'react-router-dom';
-import { 
-  Box, 
-  TextField, 
-  Button, 
-  Typography, 
-  Paper, 
+import {
+  Box,
+  TextField,
+  Button,
+  Typography,
+  Paper,
   Container,
   Alert,
   CircularProgress
@@ -19,7 +19,7 @@ const LoginPage: React.FC = () => {
   const [password, setPassword] = useState('');
   const dispatch = useDispatch<AppDispatch>();
   const navigate = useNavigate();
-  
+
   const { loading, error, isAuthenticated } = useSelector((state: RootState) => state.auth);
 
   useEffect(() => {
@@ -39,9 +39,9 @@ const LoginPage: React.FC = () => {
         <Typography variant="h4" component="h1" gutterBottom align="center">
           Login
         </Typography>
-        
+
         {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
-        
+
         <Box component="form" onSubmit={handleSubmit} noValidate>
           <TextField
             margin="normal"
@@ -76,7 +76,7 @@ const LoginPage: React.FC = () => {
           >
             {loading ? <CircularProgress size={24} /> : 'Sign In'}
           </Button>
-          
+
           <Box sx={{ mt: 2, textAlign: 'center' }}>
             <Typography variant="body2">
               Don't have an account?{' '}

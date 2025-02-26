@@ -1,23 +1,23 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { Link, useNavigate } from 'react-router-dom';
-import { 
-  AppBar, 
-  Toolbar, 
-  Typography, 
-  Container, 
-  Box, 
-  Button, 
-  IconButton, 
-  Menu, 
-  MenuItem, 
-  Avatar, 
-  Divider, 
+import {
+  AppBar,
+  Toolbar,
+  Typography,
+  Container,
+  Box,
+  Button,
+  IconButton,
+  Menu,
+  MenuItem,
+  Avatar,
+  Divider,
   Badge
 } from '@mui/material';
-import { 
-  Menu as MenuIcon, 
-  ShoppingCart as CartIcon, 
+import {
+  Menu as MenuIcon,
+  ShoppingCart as CartIcon,
   Person as PersonIcon,
   Favorite as FavoriteIcon
 } from '@mui/icons-material';
@@ -33,23 +33,23 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
   const { totalItems } = useSelector((state: RootState) => state.cart);
   const dispatch = useDispatch<AppDispatch>();
   const navigate = useNavigate();
-  
+
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const [mobileMenuAnchorEl, setMobileMenuAnchorEl] = useState<null | HTMLElement>(null);
-  
+
   const handleProfileMenuOpen = (event: React.MouseEvent<HTMLElement>) => {
     setAnchorEl(event.currentTarget);
   };
-  
+
   const handleMobileMenuOpen = (event: React.MouseEvent<HTMLElement>) => {
     setMobileMenuAnchorEl(event.currentTarget);
   };
-  
+
   const handleMenuClose = () => {
     setAnchorEl(null);
     setMobileMenuAnchorEl(null);
   };
-  
+
   const handleLogout = () => {
     dispatch(logout());
     handleMenuClose();
@@ -60,11 +60,11 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
     <>
       <AppBar position="static">
         <Toolbar>
-          <Typography 
-            variant="h6" 
-            component={Link} 
-            to="/" 
-            sx={{ 
+          <Typography
+            variant="h6"
+            component={Link}
+            to="/"
+            sx={{
               textDecoration: 'none',
               color: 'white',
               flexGrow: 1
@@ -72,7 +72,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
           >
             E-Commerce Store
           </Typography>
-          
+
           <Box sx={{ display: { xs: 'none', md: 'flex' } }}>
             <Button color="inherit" component={Link} to="/">
               Home
@@ -80,21 +80,21 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
             <Button color="inherit" component={Link} to="/products">
               Products
             </Button>
-            
+
             {isAuthenticated ? (
               <>
-                <IconButton 
-                  color="inherit" 
-                  component={Link} 
+                <IconButton
+                  color="inherit"
+                  component={Link}
                   to="/cart"
                 >
                   <Badge badgeContent={totalItems} color="secondary">
                     <CartIcon />
                   </Badge>
                 </IconButton>
-                <IconButton 
-                  color="inherit" 
-                  component={Link} 
+                <IconButton
+                  color="inherit"
+                  component={Link}
                   to="/wishlist"
                   sx={{ ml: 1 }}
                 >
@@ -123,7 +123,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
               </>
             )}
           </Box>
-          
+
           <Box sx={{ display: { xs: 'flex', md: 'none' } }}>
             <IconButton
               size="large"
@@ -137,7 +137,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
           </Box>
         </Toolbar>
       </AppBar>
-      
+
       {/* Profile Menu */}
       <Menu
         anchorEl={anchorEl}
@@ -164,7 +164,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
         <Divider />
         <MenuItem onClick={handleLogout}>Logout</MenuItem>
       </Menu>
-      
+
       {/* Mobile Menu */}
       <Menu
         anchorEl={mobileMenuAnchorEl}
@@ -186,7 +186,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
         <MenuItem onClick={() => { handleMenuClose(); navigate('/products'); }}>
           Products
         </MenuItem>
-        
+
         {isAuthenticated ? (
           <>
             <MenuItem onClick={() => { handleMenuClose(); navigate('/cart'); }}>
@@ -220,18 +220,18 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
           </>
         )}
       </Menu>
-      
+
       <Container component="main" sx={{ py: 4 }}>
         {children}
       </Container>
-      
-      <Box 
-        component="footer" 
-        sx={{ 
-          py: 3, 
-          px: 2, 
-          mt: 'auto', 
-          backgroundColor: (theme) => theme.palette.grey[200] 
+
+      <Box
+        component="footer"
+        sx={{
+          py: 3,
+          px: 2,
+          mt: 'auto',
+          backgroundColor: (theme) => theme.palette.grey[200]
         }}
       >
         <Container maxWidth="lg">
