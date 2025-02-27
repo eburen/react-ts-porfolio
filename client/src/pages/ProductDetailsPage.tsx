@@ -22,7 +22,7 @@ import { RootState, AppDispatch } from '../store';
 import { addToCart } from '../store/slices/cartSlice';
 import ProductReviews from '../components/product/ProductReviews';
 import { addToWishlist, removeFromWishlist } from '../store/slices/wishlistSlice';
-import { Favorite as FavoriteIcon, FavoriteBorder as FavoriteBorderIcon } from '@mui/icons-material';
+import { Favorite as FavoriteIcon, FavoriteBorder as FavoriteBorderIcon, ArrowBack } from '@mui/icons-material';
 
 const ProductDetailsPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -90,7 +90,27 @@ const ProductDetailsPage: React.FC = () => {
 
   return (
     <Container>
-      <Box sx={{ my: 2 }}>
+      <Box sx={{ my: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <Button
+          variant="outlined"
+          startIcon={<ArrowBack />}
+          onClick={() => navigate('/products')}
+          sx={{ mb: 1 }}
+        >
+          Back to Products
+        </Button>
+
+        <IconButton
+          color={isInWishlist ? "primary" : "default"}
+          onClick={handleToggleWishlist}
+          size="large"
+          aria-label={isInWishlist ? "Remove from wishlist" : "Add to wishlist"}
+        >
+          {isInWishlist ? <FavoriteIcon /> : <FavoriteBorderIcon />}
+        </IconButton>
+      </Box>
+
+      <Box sx={{ mb: 2 }}>
         <Breadcrumbs aria-label="breadcrumb">
           <MuiLink component={Link} to="/" underline="hover" color="inherit">
             Home
@@ -164,23 +184,6 @@ const ProductDetailsPage: React.FC = () => {
           </Grid>
         </Grid>
       </Paper>
-
-      <Box sx={{ mb: 4 }}>
-        <Button
-          variant="outlined"
-          onClick={() => navigate('/products')}
-        >
-          Back to Products
-        </Button>
-      </Box>
-
-      <IconButton
-        color={isInWishlist ? "primary" : "default"}
-        onClick={handleToggleWishlist}
-        sx={{ ml: 1 }}
-      >
-        {isInWishlist ? <FavoriteIcon /> : <FavoriteBorderIcon />}
-      </IconButton>
 
       {id && <ProductReviews productId={id} />}
     </Container>

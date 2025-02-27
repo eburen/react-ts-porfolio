@@ -1,61 +1,69 @@
 import React, { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { Link } from 'react-router-dom';
-import { 
-  Grid, 
-  Card, 
-  CardContent, 
-  CardMedia, 
-  Typography, 
-  Button, 
-  Box, 
-  Container, 
-  TextField, 
-  InputAdornment, 
-  IconButton, 
-  Pagination, 
-  FormControl, 
-  InputLabel, 
-  Select, 
-  MenuItem, 
-  CircularProgress, 
+import {
+  Grid,
+  Card,
+  CardContent,
+  CardMedia,
+  Typography,
+  Button,
+  Box,
+  Container,
+  TextField,
+  InputAdornment,
+  IconButton,
+  Pagination,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
+  CircularProgress,
   Alert,
-  CardActions
+  CardActions,
+  CardHeader
 } from '@mui/material';
-import { Search as SearchIcon, Clear as ClearIcon } from '@mui/icons-material';
+import {
+  Search as SearchIcon,
+  Clear as ClearIcon,
+  Favorite as FavoriteIcon,
+  FavoriteBorder as FavoriteBorderIcon
+} from '@mui/icons-material';
 import { fetchProducts } from '../store/slices/productSlice';
 import { RootState, AppDispatch } from '../store';
 import { addToCart } from '../store/slices/cartSlice';
+import { addToWishlist, removeFromWishlist } from '../store/slices/wishlistSlice';
 
 const ProductsPage: React.FC = () => {
   const dispatch = useDispatch<AppDispatch>();
   const { products, loading, error, page, pages } = useSelector((state: RootState) => state.products);
-  
+  const { items: wishlistItems } = useSelector((state: RootState) => state.wishlist);
+
   const [searchTerm, setSearchTerm] = useState('');
   const [category, setCategory] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
-  
+
   useEffect(() => {
     dispatch(fetchProducts({ page: currentPage, keyword: searchTerm, category }));
   }, [dispatch, currentPage, searchTerm, category]);
-  
+
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     setCurrentPage(1); // Reset to first page on new search
     dispatch(fetchProducts({ page: 1, keyword: searchTerm, category }));
   };
-  
+
   const handleClearSearch = () => {
     setSearchTerm('');
     setCurrentPage(1);
     dispatch(fetchProducts({ page: 1, category }));
   };
-  
+
   const handleCategoryChange = (e: any) => {
     setCategory(e.target.value);
     setCurrentPage(1);
   };
-  
+
   const handlePageChange = (event: React.ChangeEvent<unknown>, value: number) => {
     setCurrentPage(value);
   };
@@ -71,12 +79,26 @@ const ProductsPage: React.FC = () => {
     }));
   };
 
+  const handleToggleWishlist = (productId: string) => {
+    const isInWishlist = wishlistItems.some(item => item.product._id === productId);
+
+    if (isInWishlist) {
+      dispatch(removeFromWishlist(productId));
+    } else {
+      dispatch(addToWishlist(productId));
+    }
+  };
+
+  const isProductInWishlist = (productId: string) => {
+    return wishlistItems.some(item => item.product._id === productId);
+  };
+
   return (
     <Container>
       <Typography variant="h4" component="h1" gutterBottom>
         Products
       </Typography>
-      
+
       <Box sx={{ mb: 4 }}>
         <Grid container spacing={2} alignItems="center">
           <Grid item xs={12} md={6}>
@@ -124,9 +146,9 @@ const ProductsPage: React.FC = () => {
             </FormControl>
           </Grid>
           <Grid item xs={12} md={2}>
-            <Button 
-              fullWidth 
-              variant="contained" 
+            <Button
+              fullWidth
+              variant="contained"
               onClick={() => dispatch(fetchProducts({ page: 1, keyword: searchTerm, category }))}
             >
               Filter
@@ -134,7 +156,7 @@ const ProductsPage: React.FC = () => {
           </Grid>
         </Grid>
       </Box>
-      
+
       {loading ? (
         <Box sx={{ display: 'flex', justifyContent: 'center', my: 4 }}>
           <CircularProgress />
@@ -148,7 +170,21 @@ const ProductsPage: React.FC = () => {
           <Grid container spacing={3}>
             {products.map((product) => (
               <Grid item key={product._id} xs={12} sm={6} md={4} lg={3}>
-                <Card sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+                <Card sx={{ height: '100%', display: 'flex', flexDirection: 'column', position: 'relative' }}>
+                  <Box sx={{ position: 'absolute', top: 8, right: 8, zIndex: 1 }}>
+                    <IconButton
+                      color={isProductInWishlist(product._id) ? "primary" : "default"}
+                      onClick={() => handleToggleWishlist(product._id)}
+                      size="small"
+                      sx={{
+                        bgcolor: 'rgba(255, 255, 255, 0.7)',
+                        '&:hover': { bgcolor: 'rgba(255, 255, 255, 0.9)' }
+                      }}
+                      aria-label={isProductInWishlist(product._id) ? "Remove from wishlist" : "Add to wishlist"}
+                    >
+                      {isProductInWishlist(product._id) ? <FavoriteIcon /> : <FavoriteBorderIcon />}
+                    </IconButton>
+                  </Box>
                   <CardMedia
                     component="img"
                     height="200"
@@ -173,16 +209,16 @@ const ProductsPage: React.FC = () => {
                     </Typography>
                   </CardContent>
                   <CardActions>
-                    <Button 
-                      size="small" 
-                      component={Link} 
+                    <Button
+                      size="small"
+                      component={Link}
                       to={`/products/${product._id}`}
                     >
                       View Details
                     </Button>
-                    <Button 
-                      size="small" 
-                      variant="contained" 
+                    <Button
+                      size="small"
+                      variant="contained"
                       color="primary"
                       disabled={!product.isAvailable || product.stock <= 0}
                       onClick={() => handleAddToCart(product)}
@@ -194,13 +230,13 @@ const ProductsPage: React.FC = () => {
               </Grid>
             ))}
           </Grid>
-          
+
           <Box sx={{ display: 'flex', justifyContent: 'center', mt: 4 }}>
-            <Pagination 
-              count={pages} 
-              page={currentPage} 
-              onChange={handlePageChange} 
-              color="primary" 
+            <Pagination
+              count={pages}
+              page={currentPage}
+              onChange={handlePageChange}
+              color="primary"
             />
           </Box>
         </>

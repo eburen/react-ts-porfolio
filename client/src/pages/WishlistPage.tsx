@@ -36,7 +36,7 @@ const WishlistPage: React.FC = () => {
       const timer = setTimeout(() => {
         dispatch(clearWishlistError());
       }, 5000);
-      
+
       return () => clearTimeout(timer);
     }
   }, [error, dispatch]);
@@ -56,7 +56,7 @@ const WishlistPage: React.FC = () => {
     }));
   };
 
-  if (loading && items.length === 0) {
+  if (loading && (!items || items.length === 0)) {
     return (
       <Container maxWidth="lg" sx={{ py: 4 }}>
         <Box sx={{ display: 'flex', justifyContent: 'center', my: 4 }}>
@@ -66,6 +66,9 @@ const WishlistPage: React.FC = () => {
     );
   }
 
+  // Ensure items is an array
+  const wishlistItems = Array.isArray(items) ? items : [];
+
   return (
     <Container maxWidth="lg" sx={{ py: 4 }}>
       <Typography variant="h4" component="h1" gutterBottom>
@@ -74,15 +77,15 @@ const WishlistPage: React.FC = () => {
 
       {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
 
-      {items.length === 0 ? (
+      {wishlistItems.length === 0 ? (
         <Box sx={{ my: 4, textAlign: 'center' }}>
           <Typography variant="body1" color="text.secondary" gutterBottom>
             Your wishlist is empty.
           </Typography>
-          <Button 
-            component={Link} 
-            to="/products" 
-            variant="contained" 
+          <Button
+            component={Link}
+            to="/products"
+            variant="contained"
             sx={{ mt: 2 }}
           >
             Browse Products
@@ -90,10 +93,10 @@ const WishlistPage: React.FC = () => {
         </Box>
       ) : (
         <Grid container spacing={3}>
-          {items.map((item) => (
+          {wishlistItems.map((item) => (
             <Grid item xs={12} sm={6} md={4} key={item._id}>
               <Card>
-                {item.product.imageUrl && (
+                {item.product && item.product.imageUrl && (
                   <CardMedia
                     component="img"
                     height="200"
@@ -102,36 +105,44 @@ const WishlistPage: React.FC = () => {
                   />
                 )}
                 <CardContent>
-                  <Typography variant="h6" component="div" gutterBottom>
-                    {item.product.name}
-                  </Typography>
-                  <Typography variant="h6" color="primary">
-                    ${item.product.price.toFixed(2)}
-                  </Typography>
+                  {item.product && (
+                    <>
+                      <Typography variant="h6" component="div" gutterBottom>
+                        {item.product.name}
+                      </Typography>
+                      <Typography variant="h6" color="primary">
+                        ${item.product.price.toFixed(2)}
+                      </Typography>
+                    </>
+                  )}
                 </CardContent>
                 <CardActions sx={{ justifyContent: 'space-between' }}>
                   <Box>
-                    <Button 
-                      size="small" 
-                      component={Link} 
-                      to={`/products/${item.product._id}`}
-                    >
-                      View Details
-                    </Button>
-                    <Button 
-                      size="small" 
-                      variant="contained" 
-                      color="primary"
-                      disabled={!item.product.isAvailable}
-                      onClick={() => handleAddToCart(item)}
-                      sx={{ ml: 1 }}
-                    >
-                      Add to Cart
-                    </Button>
+                    {item.product && (
+                      <>
+                        <Button
+                          size="small"
+                          component={Link}
+                          to={`/products/${item.product._id}`}
+                        >
+                          View Details
+                        </Button>
+                        <Button
+                          size="small"
+                          variant="contained"
+                          color="primary"
+                          disabled={!item.product.isAvailable}
+                          onClick={() => handleAddToCart(item)}
+                          sx={{ ml: 1 }}
+                        >
+                          Add to Cart
+                        </Button>
+                      </>
+                    )}
                   </Box>
-                  <IconButton 
-                    color="error" 
-                    onClick={() => handleRemoveFromWishlist(item.product._id)}
+                  <IconButton
+                    color="error"
+                    onClick={() => item.product && handleRemoveFromWishlist(item.product._id)}
                   >
                     <DeleteIcon />
                   </IconButton>
