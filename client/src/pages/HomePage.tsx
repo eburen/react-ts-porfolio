@@ -16,7 +16,7 @@ const HomePage: React.FC = () => {
 
   useEffect(() => {
     // Fetch featured products (first page, limited number)
-    dispatch(fetchProducts({ page: 1, limit: 4 }));
+    dispatch(fetchProducts({ page: 1, pageSize: 4 }));
   }, [dispatch]);
 
   const handleAddToCart = (product: any) => {

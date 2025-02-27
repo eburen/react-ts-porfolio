@@ -50,7 +50,7 @@ const SalesManagementPage = () => {
     const [isRemovingSale, setIsRemovingSale] = useState(false);
 
     useEffect(() => {
-        dispatch(fetchProducts({ page: 1, limit: 100 })); // Load all products for admin
+        dispatch(fetchProducts({ page: 1, pageSize: 100 })); // Load all products for admin
     }, [dispatch]);
 
     const handleSelectAll = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -95,7 +95,7 @@ const SalesManagementPage = () => {
             }
 
             // Refresh products
-            dispatch(fetchProducts({ page: 1, limit: 100 }));
+            dispatch(fetchProducts({ page: 1, pageSize: 100 }));
             setSuccessMessage(`Sale of ${salePercentage}% applied to ${selectedProducts.length} product(s)`);
             setSelectedProducts([]);
             setSalePercentage(0);
@@ -112,7 +112,7 @@ const SalesManagementPage = () => {
             await api.delete(`/products/${productId}/sale`);
 
             // Refresh products
-            dispatch(fetchProducts({ page: 1, limit: 100 }));
+            dispatch(fetchProducts({ page: 1, pageSize: 100 }));
             setSuccessMessage('Sale removed successfully');
         } catch (error: any) {
             setErrorMessage(error.response?.data?.message || 'Failed to remove sale');
@@ -136,7 +136,7 @@ const SalesManagementPage = () => {
             }
 
             // Refresh products
-            dispatch(fetchProducts({ page: 1, limit: 100 }));
+            dispatch(fetchProducts({ page: 1, pageSize: 100 }));
             setSuccessMessage(`Sales removed from ${selectedProducts.length} product(s)`);
             setSelectedProducts([]);
         } catch (error: any) {
@@ -147,7 +147,7 @@ const SalesManagementPage = () => {
     };
 
     const handleSearch = () => {
-        dispatch(fetchProducts({ page: 1, limit: 100, keyword: searchTerm, category }));
+        dispatch(fetchProducts({ page: 1, pageSize: 100, keyword: searchTerm, category }));
     };
 
     const filteredProducts = products.filter(product => {

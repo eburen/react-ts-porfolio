@@ -13,13 +13,18 @@ import {
   MenuItem,
   Avatar,
   Divider,
-  Badge
+  Badge,
+  ListItemIcon,
+  ListItemText
 } from '@mui/material';
 import {
   Menu as MenuIcon,
   ShoppingCart as CartIcon,
   Person as PersonIcon,
-  Favorite as FavoriteIcon
+  Favorite as FavoriteIcon,
+  Dashboard as DashboardIcon,
+  Inventory as InventoryIcon,
+  LocalOffer as LocalOfferIcon
 } from '@mui/icons-material';
 import { RootState, AppDispatch } from '../../store';
 import { logout } from '../../store/slices/authSlice';
@@ -36,6 +41,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
 
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const [mobileMenuAnchorEl, setMobileMenuAnchorEl] = useState<null | HTMLElement>(null);
+  const [adminMenuAnchorEl, setAdminMenuAnchorEl] = useState<null | HTMLElement>(null);
 
   const handleProfileMenuOpen = (event: React.MouseEvent<HTMLElement>) => {
     setAnchorEl(event.currentTarget);
@@ -45,9 +51,19 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
     setMobileMenuAnchorEl(event.currentTarget);
   };
 
+  const handleAdminMenuOpen = (event: React.MouseEvent<HTMLElement>) => {
+    setAdminMenuAnchorEl(event.currentTarget);
+    setAnchorEl(null);
+  };
+
+  const handleAdminMenuClose = () => {
+    setAdminMenuAnchorEl(null);
+  };
+
   const handleMenuClose = () => {
     setAnchorEl(null);
     setMobileMenuAnchorEl(null);
+    setAdminMenuAnchorEl(null);
   };
 
   const handleLogout = () => {
@@ -157,12 +173,38 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
           <PersonIcon sx={{ mr: 1 }} /> Profile
         </MenuItem>
         {user?.role === 'admin' && (
-          <MenuItem onClick={() => { handleMenuClose(); navigate('/admin'); }}>
-            Admin Dashboard
+          <MenuItem onClick={handleAdminMenuOpen}>
+            <DashboardIcon sx={{ mr: 1 }} /> Admin Dashboard
           </MenuItem>
         )}
         <Divider />
         <MenuItem onClick={handleLogout}>Logout</MenuItem>
+      </Menu>
+
+      {/* Admin Menu */}
+      <Menu
+        anchorEl={adminMenuAnchorEl}
+        anchorOrigin={{
+          vertical: 'top',
+          horizontal: 'right',
+        }}
+        keepMounted
+        transformOrigin={{
+          vertical: 'top',
+          horizontal: 'right',
+        }}
+        open={Boolean(adminMenuAnchorEl)}
+        onClose={handleAdminMenuClose}
+      >
+        <MenuItem onClick={() => { handleMenuClose(); navigate('/admin'); }}>
+          <DashboardIcon sx={{ mr: 1 }} /> Dashboard
+        </MenuItem>
+        <MenuItem onClick={() => { handleMenuClose(); navigate('/admin/products'); }}>
+          <InventoryIcon sx={{ mr: 1 }} /> Products
+        </MenuItem>
+        <MenuItem onClick={() => { handleMenuClose(); navigate('/admin/sales'); }}>
+          <LocalOfferIcon sx={{ mr: 1 }} /> Sales
+        </MenuItem>
       </Menu>
 
       {/* Mobile Menu */}
@@ -202,9 +244,18 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
               <PersonIcon sx={{ mr: 1 }} /> Profile
             </MenuItem>
             {user?.role === 'admin' && (
-              <MenuItem onClick={() => { handleMenuClose(); navigate('/admin'); }}>
-                Admin Dashboard
-              </MenuItem>
+              <>
+                <Divider />
+                <MenuItem onClick={() => { handleMenuClose(); navigate('/admin'); }}>
+                  <DashboardIcon sx={{ mr: 1 }} /> Admin Dashboard
+                </MenuItem>
+                <MenuItem onClick={() => { handleMenuClose(); navigate('/admin/products'); }}>
+                  <InventoryIcon sx={{ mr: 1 }} /> Manage Products
+                </MenuItem>
+                <MenuItem onClick={() => { handleMenuClose(); navigate('/admin/sales'); }}>
+                  <LocalOfferIcon sx={{ mr: 1 }} /> Manage Sales
+                </MenuItem>
+              </>
             )}
             <Divider />
             <MenuItem onClick={handleLogout}>Logout</MenuItem>

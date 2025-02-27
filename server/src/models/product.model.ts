@@ -4,7 +4,7 @@ export interface IProduct extends Document {
   name: string;
   description: string;
   price: number;
-  salePrice?: number;
+  salePrice?: number | null;
   onSale: boolean;
   salePercentage?: number;
   category: string;

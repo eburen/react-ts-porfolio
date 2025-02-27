@@ -19,6 +19,10 @@ import OrderConfirmationPage from './pages/OrderConfirmationPage';
 
 // Admin Pages
 import SalesManagementPage from './pages/admin/SalesManagementPage';
+import AdminDashboardPage from './pages/admin/AdminDashboardPage';
+import ProductManagementPage from './pages/admin/ProductManagementPage';
+import ProductFormPage from './pages/admin/ProductFormPage';
+import StockManagementPage from './pages/admin/StockManagementPage';
 
 // Components
 import Layout from './components/layout/Layout';
@@ -64,7 +68,31 @@ function App() {
                         {/* Admin routes */}
                         <Route path="/admin" element={
                             <ProtectedRoute requireAdmin>
-                                <div>Admin Dashboard (to be implemented)</div>
+                                <AdminDashboardPage />
+                            </ProtectedRoute>
+                        } />
+
+                        <Route path="/admin/products" element={
+                            <ProtectedRoute requireAdmin>
+                                <ProductManagementPage />
+                            </ProtectedRoute>
+                        } />
+
+                        <Route path="/admin/products/new" element={
+                            <ProtectedRoute requireAdmin>
+                                <ProductFormPage />
+                            </ProtectedRoute>
+                        } />
+
+                        <Route path="/admin/products/edit/:id" element={
+                            <ProtectedRoute requireAdmin>
+                                <ProductFormPage />
+                            </ProtectedRoute>
+                        } />
+
+                        <Route path="/admin/products/stock/:id" element={
+                            <ProtectedRoute requireAdmin>
+                                <StockManagementPage />
                             </ProtectedRoute>
                         } />
 

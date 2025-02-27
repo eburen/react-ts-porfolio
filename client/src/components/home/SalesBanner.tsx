@@ -51,8 +51,8 @@ const sampleBanners: SaleBanner[] = [
     {
         id: 3,
         title: 'Clearance Sale',
-        description: 'Last chance to grab these items before they're gone!',
-    imageUrl: 'https://images.unsplash.com/photo-1607082349566-187342175e2f?ixlib=rb-1.2.1&auto=format&fit=crop&w=1050&q=80',
+        description: 'Last chance to grab these items before they\'re gone!',
+        imageUrl: 'https://images.unsplash.com/photo-1607082349566-187342175e2f?ixlib=rb-1.2.1&auto=format&fit=crop&w=1050&q=80',
         buttonText: 'View Deals',
         buttonLink: '/products?clearance=true',
         backgroundColor: '#f44336',

@@ -6,6 +6,9 @@ interface Product {
   name: string;
   description: string;
   price: number;
+  salePrice?: number | null;
+  onSale?: boolean;
+  salePercentage?: number;
   category: string;
   imageUrl: string;
   stock: number;
