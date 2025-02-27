@@ -56,7 +56,7 @@ const ProductDetailsPage: React.FC = () => {
       dispatch(addToCart({
         _id: product._id,
         name: product.name,
-        price: product.price,
+        price: product.salePrice || product.price,
         imageUrl: product.imageUrl,
         quantity: quantity,
         stock: product.stock
@@ -129,9 +129,37 @@ const ProductDetailsPage: React.FC = () => {
               {product.name}
             </Typography>
 
-            <Typography variant="h5" color="primary" gutterBottom>
-              ${product.price.toFixed(2)}
-            </Typography>
+            {product.salePrice ? (
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 1 }}>
+                <Typography variant="h5" color="primary" gutterBottom>
+                  ${product.salePrice.toFixed(2)}
+                </Typography>
+                <Typography
+                  variant="h6"
+                  color="text.secondary"
+                  sx={{ textDecoration: 'line-through' }}
+                >
+                  ${product.price.toFixed(2)}
+                </Typography>
+                <Box
+                  sx={{
+                    bgcolor: 'error.main',
+                    color: 'white',
+                    py: 0.5,
+                    px: 1,
+                    borderRadius: 1,
+                    fontWeight: 'bold',
+                    fontSize: '0.875rem',
+                  }}
+                >
+                  {Math.round(((product.price - product.salePrice) / product.price) * 100)}% OFF
+                </Box>
+              </Box>
+            ) : (
+              <Typography variant="h5" color="primary" gutterBottom>
+                ${product.price.toFixed(2)}
+              </Typography>
+            )}
 
             <Divider sx={{ my: 2 }} />
 

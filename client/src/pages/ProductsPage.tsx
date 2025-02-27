@@ -72,7 +72,7 @@ const ProductsPage: React.FC = () => {
     dispatch(addToCart({
       _id: product._id,
       name: product.name,
-      price: product.price,
+      price: product.salePrice || product.price,
       imageUrl: product.imageUrl,
       quantity: 1,
       stock: product.stock
@@ -185,6 +185,25 @@ const ProductsPage: React.FC = () => {
                       {isProductInWishlist(product._id) ? <FavoriteIcon /> : <FavoriteBorderIcon />}
                     </IconButton>
                   </Box>
+                  {product.salePrice && (
+                    <Box
+                      sx={{
+                        position: 'absolute',
+                        top: 8,
+                        left: 8,
+                        zIndex: 1,
+                        bgcolor: 'error.main',
+                        color: 'white',
+                        py: 0.5,
+                        px: 1,
+                        borderRadius: 1,
+                        fontWeight: 'bold',
+                        fontSize: '0.875rem',
+                      }}
+                    >
+                      {Math.round(((product.price - product.salePrice) / product.price) * 100)}% OFF
+                    </Box>
+                  )}
                   <CardMedia
                     component="img"
                     height="200"
@@ -204,9 +223,26 @@ const ProductsPage: React.FC = () => {
                     }}>
                       {product.description}
                     </Typography>
-                    <Typography variant="h6" color="primary" sx={{ mt: 2 }}>
-                      ${product.price.toFixed(2)}
-                    </Typography>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: 2 }}>
+                      {product.salePrice ? (
+                        <>
+                          <Typography variant="h6" color="primary">
+                            ${product.salePrice.toFixed(2)}
+                          </Typography>
+                          <Typography
+                            variant="body2"
+                            color="text.secondary"
+                            sx={{ textDecoration: 'line-through' }}
+                          >
+                            ${product.price.toFixed(2)}
+                          </Typography>
+                        </>
+                      ) : (
+                        <Typography variant="h6" color="primary">
+                          ${product.price.toFixed(2)}
+                        </Typography>
+                      )}
+                    </Box>
                   </CardContent>
                   <CardActions>
                     <Button

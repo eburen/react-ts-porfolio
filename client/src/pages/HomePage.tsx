@@ -23,7 +23,7 @@ const HomePage: React.FC = () => {
     dispatch(addToCart({
       _id: product._id,
       name: product.name,
-      price: product.price,
+      price: product.salePrice || product.price,
       imageUrl: product.imageUrl,
       quantity: 1,
       stock: product.stock
