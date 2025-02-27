@@ -1,29 +1,30 @@
 import React, { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { 
-  Box, 
-  Typography, 
-  Button, 
-  Grid, 
-  Card, 
-  CardContent, 
-  CardActions, 
-  CircularProgress, 
-  Dialog, 
-  DialogTitle, 
-  DialogContent, 
-  DialogActions, 
-  TextField, 
-  FormControlLabel, 
-  Checkbox, 
-  IconButton 
+import {
+  Box,
+  Typography,
+  Button,
+  Grid,
+  Card,
+  CardContent,
+  CardActions,
+  CircularProgress,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  TextField,
+  FormControlLabel,
+  Checkbox,
+  IconButton,
+  Alert
 } from '@mui/material';
 import { Delete as DeleteIcon, Edit as EditIcon, Add as AddIcon } from '@mui/icons-material';
-import { 
-  fetchUserAddresses, 
-  addUserAddress, 
-  updateUserAddress, 
-  deleteUserAddress 
+import {
+  fetchUserAddresses,
+  addUserAddress,
+  updateUserAddress,
+  deleteUserAddress
 } from '../../store/slices/userSlice';
 import { RootState, AppDispatch } from '../../store';
 
@@ -48,8 +49,8 @@ const initialAddressForm: AddressFormData = {
 
 const AddressList: React.FC = () => {
   const dispatch = useDispatch<AppDispatch>();
-  const { addresses, loading } = useSelector((state: RootState) => state.user);
-  
+  const { addresses, loading, error } = useSelector((state: RootState) => state.user);
+
   const [openDialog, setOpenDialog] = useState(false);
   const [addressForm, setAddressForm] = useState<AddressFormData>(initialAddressForm);
   const [isEditing, setIsEditing] = useState(false);
@@ -95,10 +96,10 @@ const AddressList: React.FC = () => {
 
   const handleSubmitAddress = (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (isEditing && addressForm._id) {
-      dispatch(updateUserAddress({ 
-        id: addressForm._id, 
+      dispatch(updateUserAddress({
+        id: addressForm._id,
         address: {
           street: addressForm.street,
           city: addressForm.city,
@@ -106,7 +107,7 @@ const AddressList: React.FC = () => {
           postalCode: addressForm.postalCode,
           country: addressForm.country,
           isDefault: addressForm.isDefault,
-        } 
+        }
       }))
         .unwrap()
         .then(() => {
@@ -152,8 +153,8 @@ const AddressList: React.FC = () => {
     <Box>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
         <Typography variant="h6">My Addresses</Typography>
-        <Button 
-          variant="contained" 
+        <Button
+          variant="contained"
           startIcon={<AddIcon />}
           onClick={handleOpenAddDialog}
         >
@@ -161,17 +162,23 @@ const AddressList: React.FC = () => {
         </Button>
       </Box>
 
-      {loading && addresses.length === 0 ? (
+      {error && (
+        <Alert severity="error" sx={{ mb: 3 }}>
+          {error}
+        </Alert>
+      )}
+
+      {loading ? (
         <Box sx={{ display: 'flex', justifyContent: 'center', my: 4 }}>
           <CircularProgress />
         </Box>
-      ) : addresses.length === 0 ? (
+      ) : !addresses || addresses.length === 0 ? (
         <Typography variant="body1" color="text.secondary" sx={{ my: 4, textAlign: 'center' }}>
           You don't have any saved addresses yet.
         </Typography>
       ) : (
         <Grid container spacing={3}>
-          {addresses.map((address) => (
+          {Array.isArray(addresses) && addresses.map((address) => (
             <Grid item xs={12} md={6} key={address._id}>
               <Card variant="outlined">
                 <CardContent>
@@ -191,14 +198,14 @@ const AddressList: React.FC = () => {
                   </Typography>
                 </CardContent>
                 <CardActions>
-                  <IconButton 
-                    color="primary" 
+                  <IconButton
+                    color="primary"
                     onClick={() => handleOpenEditDialog(address)}
                   >
                     <EditIcon />
                   </IconButton>
-                  <IconButton 
-                    color="error" 
+                  <IconButton
+                    color="error"
                     onClick={() => handleOpenDeleteConfirm(address._id)}
                   >
                     <DeleteIcon />
