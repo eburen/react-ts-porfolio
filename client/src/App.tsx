@@ -17,6 +17,9 @@ import WishlistPage from './pages/WishlistPage';
 import CheckoutPage from './pages/CheckoutPage';
 import OrderConfirmationPage from './pages/OrderConfirmationPage';
 
+// Admin Pages
+import SalesManagementPage from './pages/admin/SalesManagementPage';
+
 // Components
 import Layout from './components/layout/Layout';
 import ProtectedRoute from './components/auth/ProtectedRoute';
@@ -62,6 +65,12 @@ function App() {
                         <Route path="/admin" element={
                             <ProtectedRoute requireAdmin>
                                 <div>Admin Dashboard (to be implemented)</div>
+                            </ProtectedRoute>
+                        } />
+
+                        <Route path="/admin/sales" element={
+                            <ProtectedRoute requireAdmin>
+                                <SalesManagementPage />
                             </ProtectedRoute>
                         } />
 

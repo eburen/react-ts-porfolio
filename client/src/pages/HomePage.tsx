@@ -7,6 +7,7 @@ import { addToCart } from '../store/slices/cartSlice';
 import { addToWishlist, removeFromWishlist } from '../store/slices/wishlistSlice';
 import { Favorite as FavoriteIcon, FavoriteBorder as FavoriteBorderIcon } from '@mui/icons-material';
 import { RootState, AppDispatch } from '../store';
+import SalesBanner from '../components/home/SalesBanner';
 
 const HomePage: React.FC = () => {
   const dispatch = useDispatch<AppDispatch>();
@@ -64,6 +65,9 @@ const HomePage: React.FC = () => {
         </Button>
       </Box>
 
+      {/* Sales Banner Slider */}
+      <SalesBanner />
+
       {products.length > 0 && (
         <Box sx={{ mb: 6 }}>
           <Typography variant="h4" component="h2" gutterBottom sx={{ mb: 3 }}>
@@ -88,6 +92,25 @@ const HomePage: React.FC = () => {
                       {isProductInWishlist(product._id) ? <FavoriteIcon /> : <FavoriteBorderIcon />}
                     </IconButton>
                   </Box>
+                  {product.salePrice && (
+                    <Box
+                      sx={{
+                        position: 'absolute',
+                        top: 8,
+                        left: 8,
+                        zIndex: 1,
+                        bgcolor: 'error.main',
+                        color: 'white',
+                        py: 0.5,
+                        px: 1,
+                        borderRadius: 1,
+                        fontWeight: 'bold',
+                        fontSize: '0.875rem',
+                      }}
+                    >
+                      {Math.round(((product.price - product.salePrice) / product.price) * 100)}% OFF
+                    </Box>
+                  )}
                   <CardMedia
                     component="img"
                     height="200"
@@ -98,9 +121,26 @@ const HomePage: React.FC = () => {
                     <Typography gutterBottom variant="h6" component="h3" noWrap>
                       {product.name}
                     </Typography>
-                    <Typography variant="h6" color="primary">
-                      ${product.price.toFixed(2)}
-                    </Typography>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                      {product.salePrice ? (
+                        <>
+                          <Typography variant="h6" color="primary">
+                            ${product.salePrice.toFixed(2)}
+                          </Typography>
+                          <Typography
+                            variant="body2"
+                            color="text.secondary"
+                            sx={{ textDecoration: 'line-through' }}
+                          >
+                            ${product.price.toFixed(2)}
+                          </Typography>
+                        </>
+                      ) : (
+                        <Typography variant="h6" color="primary">
+                          ${product.price.toFixed(2)}
+                        </Typography>
+                      )}
+                    </Box>
                   </CardContent>
                   <CardActions>
                     <Button

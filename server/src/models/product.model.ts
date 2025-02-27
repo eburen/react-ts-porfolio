@@ -4,6 +4,9 @@ export interface IProduct extends Document {
   name: string;
   description: string;
   price: number;
+  salePrice?: number;
+  onSale: boolean;
+  salePercentage?: number;
   category: string;
   imageUrl: string;
   stock: number;
@@ -25,6 +28,21 @@ const productSchema = new Schema(
       type: Number,
       required: [true, 'Product price is required'],
       min: [0, 'Price cannot be negative'],
+    },
+    salePrice: {
+      type: Number,
+      min: [0, 'Sale price cannot be negative'],
+      default: null,
+    },
+    onSale: {
+      type: Boolean,
+      default: false,
+    },
+    salePercentage: {
+      type: Number,
+      min: [0, 'Sale percentage cannot be negative'],
+      max: [100, 'Sale percentage cannot exceed 100'],
+      default: 0,
     },
     category: {
       type: String,

@@ -14,7 +14,8 @@ import {
   Breadcrumbs,
   Link as MuiLink,
   TextField,
-  IconButton
+  IconButton,
+  Tooltip
 } from '@mui/material';
 import { Link } from 'react-router-dom';
 import { fetchProductById, clearProductDetails } from '../store/slices/productSlice';
@@ -90,7 +91,7 @@ const ProductDetailsPage: React.FC = () => {
 
   return (
     <Container>
-      <Box sx={{ my: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+      <Box sx={{ my: 2, display: 'flex', justifyContent: 'flex-start', alignItems: 'center' }}>
         <Button
           variant="outlined"
           startIcon={<ArrowBack />}
@@ -99,15 +100,6 @@ const ProductDetailsPage: React.FC = () => {
         >
           Back to Products
         </Button>
-
-        <IconButton
-          color={isInWishlist ? "primary" : "default"}
-          onClick={handleToggleWishlist}
-          size="large"
-          aria-label={isInWishlist ? "Remove from wishlist" : "Add to wishlist"}
-        >
-          {isInWishlist ? <FavoriteIcon /> : <FavoriteBorderIcon />}
-        </IconButton>
       </Box>
 
       <Box sx={{ mb: 2 }}>
@@ -154,25 +146,41 @@ const ProductDetailsPage: React.FC = () => {
             </Box>
 
             {product.stock > 0 && (
-              <Box sx={{ mt: 3, display: 'flex', alignItems: 'center' }}>
-                <TextField
-                  label="Quantity"
-                  type="number"
-                  InputProps={{ inputProps: { min: 1, max: product.stock } }}
-                  value={quantity}
-                  onChange={handleQuantityChange}
-                  sx={{ width: '100px', mr: 2 }}
-                />
+              <Box sx={{ mt: 3 }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+                  <TextField
+                    label="Quantity"
+                    type="number"
+                    InputProps={{ inputProps: { min: 1, max: product.stock } }}
+                    value={quantity}
+                    onChange={handleQuantityChange}
+                    sx={{ width: '100px', mr: 2 }}
+                  />
+                </Box>
 
-                <Button
-                  variant="contained"
-                  color="primary"
-                  size="large"
-                  onClick={handleAddToCart}
-                  disabled={!product.isAvailable || product.stock <= 0}
-                >
-                  Add to Cart
-                </Button>
+                <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                  <Button
+                    variant="contained"
+                    color="primary"
+                    size="large"
+                    onClick={handleAddToCart}
+                    disabled={!product.isAvailable || product.stock <= 0}
+                    sx={{ mr: 2 }}
+                  >
+                    Add to Cart
+                  </Button>
+
+                  <Tooltip title={isInWishlist ? "Remove from Wishlist" : "Add to Wishlist"}>
+                    <Button
+                      variant="outlined"
+                      color={isInWishlist ? "primary" : "secondary"}
+                      onClick={handleToggleWishlist}
+                      startIcon={isInWishlist ? <FavoriteIcon /> : <FavoriteBorderIcon />}
+                    >
+                      {isInWishlist ? "In Wishlist" : "Wishlist"}
+                    </Button>
+                  </Tooltip>
+                </Box>
               </Box>
             )}
 
