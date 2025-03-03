@@ -1,215 +1,154 @@
-import React from 'react';
+import React, { useEffect } from 'react';
+import { useSelector, useDispatch } from 'react-redux';
+import { useNavigate, Link } from 'react-router-dom';
 import {
     Container,
     Typography,
+    Box,
     Grid,
     Paper,
-    Box,
-    Button,
     Card,
     CardContent,
     CardActions,
+    Button,
     Divider,
     Avatar
 } from '@mui/material';
-import { Link } from 'react-router-dom';
+import { Link as RouterLink } from 'react-router-dom';
 import {
     Inventory as InventoryIcon,
     LocalOffer as LocalOfferIcon,
-    ShoppingCart as ShoppingCartIcon,
     People as PeopleIcon,
     Dashboard as DashboardIcon,
     Add as AddIcon,
     ShoppingBag as ShoppingBagIcon
 } from '@mui/icons-material';
+import Layout from '../../components/layout/Layout';
+import { RootState } from '../../store/store';
+import OrderStatistics from '../../components/admin/OrderStatistics';
 
 const AdminDashboardPage: React.FC = () => {
+    const { userInfo } = useSelector((state: RootState) => state.auth);
+    const navigate = useNavigate();
+
+    useEffect(() => {
+        if (!userInfo || userInfo.role !== 'admin') {
+            navigate('/login');
+        }
+    }, [userInfo, navigate]);
+
     return (
-        <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 4 }}>
+        <Layout>
+            <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
                 <Typography variant="h4" component="h1" gutterBottom>
                     Admin Dashboard
                 </Typography>
-                <Button
-                    variant="contained"
-                    color="primary"
-                    startIcon={<AddIcon />}
-                    component={Link}
-                    to="/admin/products/new"
-                >
-                    Add New Product
-                </Button>
-            </Box>
 
-            <Grid container spacing={3}>
-                {/* Admin Features Cards */}
-                <Grid item xs={12} md={4}>
-                    <Card sx={{ height: '100%' }}>
-                        <CardContent>
-                            <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-                                <InventoryIcon fontSize="large" color="primary" sx={{ mr: 2 }} />
-                                <Typography variant="h6">Product Management</Typography>
-                            </Box>
-                            <Divider sx={{ mb: 2 }} />
-                            <Typography variant="body2" color="text.secondary" paragraph>
-                                Add, edit, or remove products. Manage product inventory and details.
-                            </Typography>
-                        </CardContent>
-                        <CardActions>
-                            <Button
-                                component={Link}
-                                to="/admin/products"
-                                variant="outlined"
-                                fullWidth
-                            >
-                                Manage Products
-                            </Button>
-                        </CardActions>
-                    </Card>
-                </Grid>
+                {/* Order Statistics */}
+                <OrderStatistics />
 
-                <Grid item xs={12} md={4}>
-                    <Card sx={{ height: '100%' }}>
-                        <CardContent>
-                            <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-                                <LocalOfferIcon fontSize="large" color="primary" sx={{ mr: 2 }} />
-                                <Typography variant="h6">Sales Management</Typography>
-                            </Box>
-                            <Divider sx={{ mb: 2 }} />
-                            <Typography variant="body2" color="text.secondary" paragraph>
-                                Create and manage sales, discounts, and promotional offers.
-                            </Typography>
-                        </CardContent>
-                        <CardActions>
-                            <Button
-                                component={Link}
-                                to="/admin/sales"
-                                variant="outlined"
-                                fullWidth
-                            >
-                                Manage Sales
-                            </Button>
-                        </CardActions>
-                    </Card>
-                </Grid>
-
-                <Grid item xs={12} md={4}>
-                    <Card sx={{ height: '100%' }}>
-                        <CardContent>
-                            <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-                                <ShoppingCartIcon fontSize="large" color="primary" sx={{ mr: 2 }} />
-                                <Typography variant="h6">Order Management</Typography>
-                            </Box>
-                            <Divider sx={{ mb: 2 }} />
-                            <Typography variant="body2" color="text.secondary" paragraph>
-                                View and manage customer orders, track shipments, and process returns.
-                            </Typography>
-                        </CardContent>
-                        <CardActions>
-                            <Button
-                                component={Link}
-                                to="/admin/orders"
-                                variant="outlined"
-                                fullWidth
-                                disabled
-                            >
-                                Manage Orders
-                            </Button>
-                        </CardActions>
-                    </Card>
-                </Grid>
-
-                {/* Stats Cards */}
-                <Grid item xs={12}>
-                    <Paper sx={{ p: 3, mt: 3 }}>
-                        <Typography variant="h6" gutterBottom>
-                            Quick Actions
-                        </Typography>
-                        <Grid container spacing={2} sx={{ mt: 1 }}>
-                            <Grid item xs={12} sm={6} md={3}>
+                <Grid container spacing={3}>
+                    {/* Product Management Card */}
+                    <Grid item xs={12} sm={6} md={4}>
+                        <Card sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+                            <CardContent sx={{ flexGrow: 1 }}>
+                                <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+                                    <Avatar sx={{ bgcolor: 'primary.main', mr: 2 }}>
+                                        <InventoryIcon />
+                                    </Avatar>
+                                    <Typography variant="h6" component="div">
+                                        Product Management
+                                    </Typography>
+                                </Box>
+                                <Typography variant="body2" color="text.secondary" paragraph>
+                                    Manage your product catalog, add new products, update existing ones, and control inventory.
+                                </Typography>
+                            </CardContent>
+                            <CardActions>
                                 <Button
-                                    variant="contained"
+                                    size="small"
                                     color="primary"
-                                    fullWidth
+                                    component={Link}
+                                    to="/admin/products"
+                                    startIcon={<InventoryIcon />}
+                                >
+                                    Manage Products
+                                </Button>
+                                <Button
+                                    size="small"
+                                    color="secondary"
                                     component={Link}
                                     to="/admin/products/new"
                                     startIcon={<AddIcon />}
                                 >
                                     Add Product
                                 </Button>
-                            </Grid>
-                            <Grid item xs={12} sm={6} md={3}>
+                            </CardActions>
+                        </Card>
+                    </Grid>
+
+                    {/* Sales Management Card */}
+                    <Grid item xs={12} sm={6} md={4}>
+                        <Card sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+                            <CardContent sx={{ flexGrow: 1 }}>
+                                <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+                                    <Avatar sx={{ bgcolor: 'secondary.main', mr: 2 }}>
+                                        <LocalOfferIcon />
+                                    </Avatar>
+                                    <Typography variant="h6" component="div">
+                                        Sales Management
+                                    </Typography>
+                                </Box>
+                                <Typography variant="body2" color="text.secondary" paragraph>
+                                    Create and manage sales promotions, discounts, and special offers for your products.
+                                </Typography>
+                            </CardContent>
+                            <CardActions>
                                 <Button
-                                    variant="contained"
-                                    color="secondary"
-                                    fullWidth
-                                    component={Link}
-                                    to="/admin/products/stock"
-                                    startIcon={<InventoryIcon />}
-                                >
-                                    Update Stock
-                                </Button>
-                            </Grid>
-                            <Grid item xs={12} sm={6} md={3}>
-                                <Button
-                                    variant="contained"
-                                    color="info"
-                                    fullWidth
+                                    size="small"
+                                    color="primary"
                                     component={Link}
                                     to="/admin/sales"
                                     startIcon={<LocalOfferIcon />}
                                 >
                                     Manage Sales
                                 </Button>
-                            </Grid>
-                            <Grid item xs={12} sm={6} md={3}>
-                                <Button
-                                    variant="contained"
-                                    color="warning"
-                                    fullWidth
-                                    component={Link}
-                                    to="/admin/users"
-                                    startIcon={<PeopleIcon />}
-                                    disabled
-                                >
-                                    Manage Users
-                                </Button>
-                            </Grid>
-                        </Grid>
-                    </Paper>
-                </Grid>
+                            </CardActions>
+                        </Card>
+                    </Grid>
 
-                {/* New card for order management */}
-                <Grid item xs={12} sm={6} md={4}>
-                    <Card sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
-                        <CardContent sx={{ flexGrow: 1 }}>
-                            <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-                                <Avatar sx={{ bgcolor: 'secondary.main', mr: 2 }}>
-                                    <ShoppingBagIcon />
-                                </Avatar>
-                                <Typography variant="h6" component="div">
-                                    Order Management
+                    {/* Order Management Card */}
+                    <Grid item xs={12} sm={6} md={4}>
+                        <Card sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+                            <CardContent sx={{ flexGrow: 1 }}>
+                                <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+                                    <Avatar sx={{ bgcolor: 'secondary.main', mr: 2 }}>
+                                        <ShoppingBagIcon />
+                                    </Avatar>
+                                    <Typography variant="h6" component="div">
+                                        Order Management
+                                    </Typography>
+                                </Box>
+                                <Typography variant="body2" color="text.secondary" paragraph>
+                                    Manage customer orders, update order status, and handle payment processing.
                                 </Typography>
-                            </Box>
-                            <Typography variant="body2" color="text.secondary" paragraph>
-                                Manage customer orders, update order status, and handle payment processing.
-                            </Typography>
-                        </CardContent>
-                        <CardActions>
-                            <Button
-                                size="small"
-                                color="primary"
-                                component={Link}
-                                to="/admin/orders"
-                                startIcon={<ShoppingBagIcon />}
-                            >
-                                Manage Orders
-                            </Button>
-                        </CardActions>
-                    </Card>
+                            </CardContent>
+                            <CardActions>
+                                <Button
+                                    size="small"
+                                    color="primary"
+                                    component={Link}
+                                    to="/admin/orders"
+                                    startIcon={<ShoppingBagIcon />}
+                                >
+                                    Manage Orders
+                                </Button>
+                            </CardActions>
+                        </Card>
+                    </Grid>
                 </Grid>
-            </Grid>
-        </Container>
+            </Container>
+        </Layout>
     );
 };
 

@@ -20,6 +20,7 @@ import {
 } from '@mui/material';
 import { format } from 'date-fns';
 import Layout from '../components/layout/Layout';
+import OrderTracker from '../components/orders/OrderTracker';
 import { getOrderById, cancelOrder, clearOrderSuccess } from '../store/slices/orderSlice';
 import { RootState, AppDispatch } from '../store/store';
 
@@ -128,6 +129,14 @@ const OrderDetailsPage: React.FC = () => {
                         Back to Orders
                     </Button>
                 </Box>
+
+                {/* Order Tracker */}
+                <OrderTracker
+                    status={currentOrder.status}
+                    createdAt={currentOrder.createdAt}
+                    paidAt={currentOrder.paidAt}
+                    deliveredAt={currentOrder.deliveredAt}
+                />
 
                 <Grid container spacing={3}>
                     {/* Order Summary */}

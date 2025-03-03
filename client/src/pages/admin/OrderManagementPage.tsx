@@ -28,9 +28,11 @@ import {
     TextField,
     IconButton,
     InputAdornment,
+    Tooltip,
 } from '@mui/material';
 import SearchIcon from '@mui/icons-material/Search';
 import ClearIcon from '@mui/icons-material/Clear';
+import FileDownloadIcon from '@mui/icons-material/FileDownload';
 import { format } from 'date-fns';
 import Layout from '../../components/layout/Layout';
 import {
@@ -40,6 +42,7 @@ import {
     clearOrderSuccess,
 } from '../../store/slices/orderSlice';
 import { RootState, AppDispatch } from '../../store/store';
+import { exportToCsv } from '../../utils/exportToCsv';
 
 const OrderManagementPage: React.FC = () => {
     const dispatch = useDispatch<AppDispatch>();
@@ -178,12 +181,59 @@ const OrderManagementPage: React.FC = () => {
         return format(new Date(dateString), 'MMM dd, yyyy');
     };
 
+    const prepareOrdersForExport = (orders: any[]) => {
+        return orders.map(order => {
+            const userName = order.user && typeof order.user === 'object' ? order.user.name : 'Unknown';
+            const userEmail = order.user && typeof order.user === 'object' ? order.user.email : 'Unknown';
+
+            const address = order.shippingAddress ?
+                `${order.shippingAddress.street}, ${order.shippingAddress.city}, ${order.shippingAddress.state} ${order.shippingAddress.postalCode}, ${order.shippingAddress.country}` :
+                'No address';
+
+            const orderDate = order.createdAt ? formatDate(order.createdAt) : 'Unknown';
+            const paidDate = order.paidAt ? formatDate(order.paidAt) : 'Not paid';
+            const deliveredDate = order.deliveredAt ? formatDate(order.deliveredAt) : 'Not delivered';
+
+            return {
+                OrderID: order._id,
+                Date: orderDate,
+                CustomerName: userName,
+                CustomerEmail: userEmail,
+                ShippingAddress: address,
+                Status: order.status,
+                PaymentStatus: order.paymentStatus,
+                PaymentMethod: order.paymentMethod,
+                PaidDate: paidDate,
+                DeliveredDate: deliveredDate,
+                TotalAmount: order.totalAmount.toFixed(2),
+            };
+        });
+    };
+
+    const handleExportOrders = () => {
+        const exportData = prepareOrdersForExport(filteredOrders);
+        exportToCsv(exportData, `orders-export-${format(new Date(), 'yyyy-MM-dd')}`);
+    };
+
     return (
         <Layout>
             <Box sx={{ maxWidth: 1200, mx: 'auto', p: 2 }}>
-                <Typography variant="h4" component="h1" gutterBottom>
-                    Order Management
-                </Typography>
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+                    <Typography variant="h4" component="h1">
+                        Order Management
+                    </Typography>
+                    <Tooltip title="Export Orders to CSV">
+                        <Button
+                            variant="outlined"
+                            color="primary"
+                            startIcon={<FileDownloadIcon />}
+                            onClick={handleExportOrders}
+                            disabled={filteredOrders.length === 0}
+                        >
+                            Export to CSV
+                        </Button>
+                    </Tooltip>
+                </Box>
 
                 <Paper sx={{ p: 2, mb: 3 }}>
                     <TextField
