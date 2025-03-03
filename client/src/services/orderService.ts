@@ -22,7 +22,7 @@ interface OrderData {
     quantity: number;
   }>;
   shippingAddress: ShippingAddress;
-  paymentInfo: PaymentInfo;
+  paymentMethod: string;
 }
 
 export const orderService = {
@@ -37,12 +37,28 @@ export const orderService = {
   },
 
   getUserOrders: async (): Promise<any> => {
-    const response = await api.get('/orders/my-orders');
+    const response = await api.get('/orders');
+    return response.data;
+  },
+
+  cancelOrder: async (orderId: string): Promise<any> => {
+    const response = await api.put(`/orders/${orderId}/cancel`);
+    return response.data;
+  },
+
+  // Admin functions
+  getAllOrders: async (page = 1, limit = 10): Promise<any> => {
+    const response = await api.get(`/orders/admin/all?page=${page}&limit=${limit}`);
     return response.data;
   },
 
   updateOrderStatus: async (orderId: string, status: string): Promise<any> => {
     const response = await api.put(`/orders/${orderId}/status`, { status });
+    return response.data;
+  },
+
+  updatePaymentStatus: async (orderId: string, paymentStatus: string): Promise<any> => {
+    const response = await api.put(`/orders/${orderId}/payment`, { paymentStatus });
     return response.data;
   }
 }; 

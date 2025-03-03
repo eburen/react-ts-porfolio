@@ -22,14 +22,12 @@ interface Order {
     postalCode: string;
     country: string;
   };
-  paymentInfo: {
-    paymentMethod: string;
-    cardNumber?: string;
-    cardName?: string;
-    expiryDate?: string;
-  };
+  paymentMethod: string;
   totalAmount: number;
   status: string;
+  paymentStatus: string;
+  paidAt?: string;
+  deliveredAt?: string;
   createdAt: string;
   updatedAt: string;
 }
@@ -37,6 +35,12 @@ interface Order {
 interface OrderState {
   currentOrder: Order | null;
   orders: Order[];
+  adminOrders: {
+    orders: Order[];
+    page: number;
+    pages: number;
+    total: number;
+  };
   loading: boolean;
   error: string | null;
   success: boolean;
@@ -45,6 +49,12 @@ interface OrderState {
 const initialState: OrderState = {
   currentOrder: null,
   orders: [],
+  adminOrders: {
+    orders: [],
+    page: 1,
+    pages: 1,
+    total: 0
+  },
   loading: false,
   error: null,
   success: false,
@@ -80,6 +90,51 @@ export const getUserOrders = createAsyncThunk(
       return await orderService.getUserOrders();
     } catch (error: any) {
       return rejectWithValue(error.response?.data?.message || 'Failed to fetch orders');
+    }
+  }
+);
+
+export const cancelOrder = createAsyncThunk(
+  'orders/cancelOrder',
+  async (orderId: string, { rejectWithValue }) => {
+    try {
+      return await orderService.cancelOrder(orderId);
+    } catch (error: any) {
+      return rejectWithValue(error.response?.data?.message || 'Failed to cancel order');
+    }
+  }
+);
+
+// Admin thunks
+export const getAllOrders = createAsyncThunk(
+  'orders/getAllOrders',
+  async ({ page = 1, limit = 10 }: { page?: number; limit?: number }, { rejectWithValue }) => {
+    try {
+      return await orderService.getAllOrders(page, limit);
+    } catch (error: any) {
+      return rejectWithValue(error.response?.data?.message || 'Failed to fetch all orders');
+    }
+  }
+);
+
+export const updateOrderStatus = createAsyncThunk(
+  'orders/updateOrderStatus',
+  async ({ orderId, status }: { orderId: string; status: string }, { rejectWithValue }) => {
+    try {
+      return await orderService.updateOrderStatus(orderId, status);
+    } catch (error: any) {
+      return rejectWithValue(error.response?.data?.message || 'Failed to update order status');
+    }
+  }
+);
+
+export const updatePaymentStatus = createAsyncThunk(
+  'orders/updatePaymentStatus',
+  async ({ orderId, paymentStatus }: { orderId: string; paymentStatus: string }, { rejectWithValue }) => {
+    try {
+      return await orderService.updatePaymentStatus(orderId, paymentStatus);
+    } catch (error: any) {
+      return rejectWithValue(error.response?.data?.message || 'Failed to update payment status');
     }
   }
 );
@@ -140,6 +195,85 @@ const orderSlice = createSlice({
       state.orders = action.payload;
     });
     builder.addCase(getUserOrders.rejected, (state, action) => {
+      state.loading = false;
+      state.error = action.payload as string;
+    });
+
+    // Cancel order
+    builder.addCase(cancelOrder.pending, (state) => {
+      state.loading = true;
+      state.error = null;
+    });
+    builder.addCase(cancelOrder.fulfilled, (state, action: PayloadAction<Order>) => {
+      state.loading = false;
+      state.orders = state.orders.map(order => 
+        order._id === action.payload._id ? action.payload : order
+      );
+      if (state.currentOrder && state.currentOrder._id === action.payload._id) {
+        state.currentOrder = action.payload;
+      }
+      state.success = true;
+    });
+    builder.addCase(cancelOrder.rejected, (state, action) => {
+      state.loading = false;
+      state.error = action.payload as string;
+    });
+
+    // Admin: Get all orders
+    builder.addCase(getAllOrders.pending, (state) => {
+      state.loading = true;
+      state.error = null;
+    });
+    builder.addCase(getAllOrders.fulfilled, (state, action: PayloadAction<{
+      orders: Order[];
+      page: number;
+      pages: number;
+      total: number;
+    }>) => {
+      state.loading = false;
+      state.adminOrders = action.payload;
+    });
+    builder.addCase(getAllOrders.rejected, (state, action) => {
+      state.loading = false;
+      state.error = action.payload as string;
+    });
+
+    // Admin: Update order status
+    builder.addCase(updateOrderStatus.pending, (state) => {
+      state.loading = true;
+      state.error = null;
+    });
+    builder.addCase(updateOrderStatus.fulfilled, (state, action: PayloadAction<Order>) => {
+      state.loading = false;
+      state.adminOrders.orders = state.adminOrders.orders.map(order => 
+        order._id === action.payload._id ? action.payload : order
+      );
+      if (state.currentOrder && state.currentOrder._id === action.payload._id) {
+        state.currentOrder = action.payload;
+      }
+      state.success = true;
+    });
+    builder.addCase(updateOrderStatus.rejected, (state, action) => {
+      state.loading = false;
+      state.error = action.payload as string;
+    });
+
+    // Admin: Update payment status
+    builder.addCase(updatePaymentStatus.pending, (state) => {
+      state.loading = true;
+      state.error = null;
+    });
+    builder.addCase(updatePaymentStatus.fulfilled, (state, action: PayloadAction<Order>) => {
+      state.loading = false;
+      state.adminOrders.orders = state.adminOrders.orders.map(order => 
+        order._id === action.payload._id ? action.payload : order
+      );
+      if (state.currentOrder && state.currentOrder._id === action.payload._id) {
+        state.currentOrder = action.payload;
+      }
+      state.success = true;
+    });
+    builder.addCase(updatePaymentStatus.rejected, (state, action) => {
       state.loading = false;
       state.error = action.payload as string;
     });

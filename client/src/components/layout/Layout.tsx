@@ -24,7 +24,9 @@ import {
   Favorite as FavoriteIcon,
   Dashboard as DashboardIcon,
   Inventory as InventoryIcon,
-  LocalOffer as LocalOfferIcon
+  LocalOffer as LocalOfferIcon,
+  Receipt as ReceiptIcon,
+  ShoppingBag as ShoppingBagIcon
 } from '@mui/icons-material';
 import { RootState, AppDispatch } from '../../store';
 import { logout } from '../../store/slices/authSlice';
@@ -158,7 +160,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
       <Menu
         anchorEl={anchorEl}
         anchorOrigin={{
-          vertical: 'top',
+          vertical: 'bottom',
           horizontal: 'right',
         }}
         keepMounted
@@ -169,23 +171,43 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
         open={Boolean(anchorEl)}
         onClose={handleMenuClose}
       >
-        <MenuItem onClick={() => { handleMenuClose(); navigate('/profile'); }}>
-          <PersonIcon sx={{ mr: 1 }} /> Profile
+        <MenuItem component={Link} to="/profile" onClick={handleMenuClose}>
+          <ListItemIcon>
+            <PersonIcon fontSize="small" />
+          </ListItemIcon>
+          <ListItemText>Profile</ListItemText>
+        </MenuItem>
+        <MenuItem component={Link} to="/wishlist" onClick={handleMenuClose}>
+          <ListItemIcon>
+            <FavoriteIcon fontSize="small" />
+          </ListItemIcon>
+          <ListItemText>Wishlist</ListItemText>
+        </MenuItem>
+        <MenuItem component={Link} to="/orders" onClick={handleMenuClose}>
+          <ListItemIcon>
+            <ReceiptIcon fontSize="small" />
+          </ListItemIcon>
+          <ListItemText>My Orders</ListItemText>
         </MenuItem>
         {user?.role === 'admin' && (
           <MenuItem onClick={handleAdminMenuOpen}>
-            <DashboardIcon sx={{ mr: 1 }} /> Admin Dashboard
+            <ListItemIcon>
+              <DashboardIcon fontSize="small" />
+            </ListItemIcon>
+            <ListItemText>Admin</ListItemText>
           </MenuItem>
         )}
         <Divider />
-        <MenuItem onClick={handleLogout}>Logout</MenuItem>
+        <MenuItem onClick={handleLogout}>
+          <ListItemText>Logout</ListItemText>
+        </MenuItem>
       </Menu>
 
       {/* Admin Menu */}
       <Menu
         anchorEl={adminMenuAnchorEl}
         anchorOrigin={{
-          vertical: 'top',
+          vertical: 'bottom',
           horizontal: 'right',
         }}
         keepMounted
@@ -196,14 +218,29 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
         open={Boolean(adminMenuAnchorEl)}
         onClose={handleAdminMenuClose}
       >
-        <MenuItem onClick={() => { handleMenuClose(); navigate('/admin'); }}>
-          <DashboardIcon sx={{ mr: 1 }} /> Dashboard
+        <MenuItem component={Link} to="/admin" onClick={handleAdminMenuClose}>
+          <ListItemIcon>
+            <DashboardIcon fontSize="small" />
+          </ListItemIcon>
+          <ListItemText>Dashboard</ListItemText>
         </MenuItem>
-        <MenuItem onClick={() => { handleMenuClose(); navigate('/admin/products'); }}>
-          <InventoryIcon sx={{ mr: 1 }} /> Products
+        <MenuItem component={Link} to="/admin/products" onClick={handleAdminMenuClose}>
+          <ListItemIcon>
+            <InventoryIcon fontSize="small" />
+          </ListItemIcon>
+          <ListItemText>Products</ListItemText>
         </MenuItem>
-        <MenuItem onClick={() => { handleMenuClose(); navigate('/admin/sales'); }}>
-          <LocalOfferIcon sx={{ mr: 1 }} /> Sales
+        <MenuItem component={Link} to="/admin/sales" onClick={handleAdminMenuClose}>
+          <ListItemIcon>
+            <LocalOfferIcon fontSize="small" />
+          </ListItemIcon>
+          <ListItemText>Sales</ListItemText>
+        </MenuItem>
+        <MenuItem component={Link} to="/admin/orders" onClick={handleAdminMenuClose}>
+          <ListItemIcon>
+            <ShoppingBagIcon fontSize="small" />
+          </ListItemIcon>
+          <ListItemText>Orders</ListItemText>
         </MenuItem>
       </Menu>
 

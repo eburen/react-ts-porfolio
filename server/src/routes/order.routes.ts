@@ -1,31 +1,26 @@
 import express from 'express';
 import { protect, admin } from '../middleware/auth.middleware';
+import {
+  getAllOrders,
+  getUserOrders,
+  getOrderById,
+  createOrder,
+  updateOrderStatus,
+  updatePaymentStatus,
+  cancelOrder
+} from '../controllers/order.controller';
 
 const router = express.Router();
 
-// We'll implement these controllers later
-router.post('/', protect, (req, res) => {
-  res.json({ message: 'Create order - to be implemented' });
-});
+// User routes
+router.post('/', protect, createOrder);
+router.get('/', protect, getUserOrders);
+router.get('/:id', protect, getOrderById);
+router.put('/:id/cancel', protect, cancelOrder);
 
-router.get('/', protect, (req, res) => {
-  res.json({ message: 'Get user orders - to be implemented' });
-});
-
-router.get('/all', protect, admin, (req, res) => {
-  res.json({ message: 'Get all orders (admin) - to be implemented' });
-});
-
-router.get('/:id', protect, (req, res) => {
-  res.json({ message: 'Get order by ID - to be implemented' });
-});
-
-router.put('/:id/pay', protect, (req, res) => {
-  res.json({ message: 'Update order to paid - to be implemented' });
-});
-
-router.put('/:id/deliver', protect, admin, (req, res) => {
-  res.json({ message: 'Update order to delivered - to be implemented' });
-});
+// Admin routes
+router.get('/admin/all', protect, admin, getAllOrders);
+router.put('/:id/status', protect, admin, updateOrderStatus);
+router.put('/:id/payment', protect, admin, updatePaymentStatus);
 
 export default router; 

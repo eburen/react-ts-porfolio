@@ -9,7 +9,8 @@ import {
     Card,
     CardContent,
     CardActions,
-    Divider
+    Divider,
+    Avatar
 } from '@mui/material';
 import { Link } from 'react-router-dom';
 import {
@@ -18,7 +19,8 @@ import {
     ShoppingCart as ShoppingCartIcon,
     People as PeopleIcon,
     Dashboard as DashboardIcon,
-    Add as AddIcon
+    Add as AddIcon,
+    ShoppingBag as ShoppingBagIcon
 } from '@mui/icons-material';
 
 const AdminDashboardPage: React.FC = () => {
@@ -175,6 +177,36 @@ const AdminDashboardPage: React.FC = () => {
                             </Grid>
                         </Grid>
                     </Paper>
+                </Grid>
+
+                {/* New card for order management */}
+                <Grid item xs={12} sm={6} md={4}>
+                    <Card sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+                        <CardContent sx={{ flexGrow: 1 }}>
+                            <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+                                <Avatar sx={{ bgcolor: 'secondary.main', mr: 2 }}>
+                                    <ShoppingBagIcon />
+                                </Avatar>
+                                <Typography variant="h6" component="div">
+                                    Order Management
+                                </Typography>
+                            </Box>
+                            <Typography variant="body2" color="text.secondary" paragraph>
+                                Manage customer orders, update order status, and handle payment processing.
+                            </Typography>
+                        </CardContent>
+                        <CardActions>
+                            <Button
+                                size="small"
+                                color="primary"
+                                component={Link}
+                                to="/admin/orders"
+                                startIcon={<ShoppingBagIcon />}
+                            >
+                                Manage Orders
+                            </Button>
+                        </CardActions>
+                    </Card>
                 </Grid>
             </Grid>
         </Container>

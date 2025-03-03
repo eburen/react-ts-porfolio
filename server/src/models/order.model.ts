@@ -20,6 +20,10 @@ export interface IOrder extends Document {
   status: 'pending' | 'processing' | 'shipped' | 'delivered' | 'cancelled';
   paymentMethod: string;
   paymentStatus: 'pending' | 'completed' | 'failed' | 'refunded';
+  paidAt?: Date;
+  deliveredAt?: Date;
+  createdAt: Date;
+  updatedAt: Date;
 }
 
 const orderSchema = new Schema(
@@ -71,6 +75,12 @@ const orderSchema = new Schema(
       type: String,
       enum: ['pending', 'completed', 'failed', 'refunded'],
       default: 'pending',
+    },
+    paidAt: {
+      type: Date,
+    },
+    deliveredAt: {
+      type: Date,
     },
   },
   {

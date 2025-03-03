@@ -1,20 +1,23 @@
 import React, { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { 
-  Container, 
-  Box, 
-  Typography, 
-  Tabs, 
-  Tab, 
-  Paper, 
-  CircularProgress, 
-  Alert 
+import {
+  Container,
+  Box,
+  Typography,
+  Tabs,
+  Tab,
+  Paper,
+  CircularProgress,
+  Alert,
+  Button
 } from '@mui/material';
+import { Link } from 'react-router-dom';
 import { RootState, AppDispatch } from '../store';
 import { fetchUserProfile, clearUserError, clearUserSuccess } from '../store/slices/userSlice';
 import ProfileInfo from '../components/profile/ProfileInfo';
 import AddressList from '../components/profile/AddressList';
 import OrderHistory from '../components/profile/OrderHistory';
+import { Receipt as ReceiptIcon } from '@mui/icons-material';
 
 interface TabPanelProps {
   children?: React.ReactNode;
@@ -96,7 +99,7 @@ const ProfilePage: React.FC = () => {
           <Tabs value={tabValue} onChange={handleTabChange} aria-label="profile tabs">
             <Tab label="Personal Information" />
             <Tab label="Addresses" />
-            <Tab label="Order History" />
+            <Tab label="Orders" icon={<ReceiptIcon />} />
           </Tabs>
         </Box>
 
@@ -107,7 +110,23 @@ const ProfilePage: React.FC = () => {
           <AddressList />
         </TabPanel>
         <TabPanel value={tabValue} index={2}>
-          <OrderHistory />
+          <Box sx={{ p: 3 }}>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+              <Typography variant="h6">Your Orders</Typography>
+              <Button
+                variant="contained"
+                color="primary"
+                component={Link}
+                to="/orders"
+                startIcon={<ReceiptIcon />}
+              >
+                View All Orders
+              </Button>
+            </Box>
+            <Typography variant="body1">
+              View and manage your order history, track shipments, and request returns.
+            </Typography>
+          </Box>
         </TabPanel>
       </Paper>
     </Container>

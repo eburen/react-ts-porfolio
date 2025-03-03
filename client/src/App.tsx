@@ -16,6 +16,8 @@ import ProfilePage from './pages/ProfilePage';
 import WishlistPage from './pages/WishlistPage';
 import CheckoutPage from './pages/CheckoutPage';
 import OrderConfirmationPage from './pages/OrderConfirmationPage';
+import OrderHistoryPage from './pages/OrderHistoryPage';
+import OrderDetailsPage from './pages/OrderDetailsPage';
 
 // Admin Pages
 import SalesManagementPage from './pages/admin/SalesManagementPage';
@@ -23,6 +25,7 @@ import AdminDashboardPage from './pages/admin/AdminDashboardPage';
 import ProductManagementPage from './pages/admin/ProductManagementPage';
 import ProductFormPage from './pages/admin/ProductFormPage';
 import StockManagementPage from './pages/admin/StockManagementPage';
+import OrderManagementPage from './pages/admin/OrderManagementPage';
 
 // Components
 import Layout from './components/layout/Layout';
@@ -65,6 +68,18 @@ function App() {
                             </ProtectedRoute>
                         } />
 
+                        {/* Order routes */}
+                        <Route path="/orders" element={
+                            <ProtectedRoute>
+                                <OrderHistoryPage />
+                            </ProtectedRoute>
+                        } />
+                        <Route path="/orders/:id" element={
+                            <ProtectedRoute>
+                                <OrderDetailsPage />
+                            </ProtectedRoute>
+                        } />
+
                         {/* Admin routes */}
                         <Route path="/admin" element={
                             <ProtectedRoute requireAdmin>
@@ -99,6 +114,12 @@ function App() {
                         <Route path="/admin/sales" element={
                             <ProtectedRoute requireAdmin>
                                 <SalesManagementPage />
+                            </ProtectedRoute>
+                        } />
+
+                        <Route path="/admin/orders" element={
+                            <ProtectedRoute requireAdmin>
+                                <OrderManagementPage />
                             </ProtectedRoute>
                         } />
 
