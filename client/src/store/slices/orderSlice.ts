@@ -65,9 +65,17 @@ export const createOrder = createAsyncThunk(
   'orders/createOrder',
   async (orderData: any, { rejectWithValue }) => {
     try {
-      return await orderService.createOrder(orderData);
+      console.log('Creating order with data:', orderData);
+      const response = await orderService.createOrder(orderData);
+      console.log('Order created successfully:', response);
+      return response;
     } catch (error: any) {
-      return rejectWithValue(error.response?.data?.message || 'Failed to create order');
+      console.error('Error creating order:', error);
+      return rejectWithValue(
+        error.response?.data?.message || 
+        error.message || 
+        'Failed to create order. Please try again.'
+      );
     }
   }
 );

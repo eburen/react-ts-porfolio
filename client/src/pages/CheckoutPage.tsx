@@ -38,7 +38,7 @@ const CheckoutPage: React.FC = () => {
   const { items, totalAmount } = useSelector((state: RootState) => state.cart);
   const { addresses } = useSelector((state: RootState) => state.user);
   const { loading, error, success, currentOrder } = useSelector((state: RootState) => state.orders);
-  
+
   const [activeStep, setActiveStep] = useState(0);
   const [selectedAddressId, setSelectedAddressId] = useState('');
   const [newAddress, setNewAddress] = useState({
@@ -56,16 +56,17 @@ const CheckoutPage: React.FC = () => {
     expiryDate: '',
     cvv: '',
   });
+  const [validationError, setValidationError] = useState('');
 
   useEffect(() => {
     if (!isAuthenticated) {
       navigate('/login?redirect=checkout');
     }
-    
+
     if (items.length === 0) {
       navigate('/cart');
     }
-    
+
     dispatch(fetchUserAddresses());
   }, [dispatch, isAuthenticated, items.length, navigate]);
 
@@ -110,11 +111,19 @@ const CheckoutPage: React.FC = () => {
   };
 
   const handlePlaceOrder = () => {
-    const selectedAddress = useNewAddress 
-      ? newAddress 
+    setValidationError('');
+
+    const selectedAddress = useNewAddress
+      ? newAddress
       : addresses.find(addr => addr._id === selectedAddressId);
-    
+
     if (!selectedAddress) {
+      setValidationError('Please select or enter a shipping address');
+      return;
+    }
+
+    if (!paymentMethod) {
+      setValidationError('Please select a payment method');
       return;
     }
 
@@ -124,12 +133,14 @@ const CheckoutPage: React.FC = () => {
         quantity: item.quantity,
       })),
       shippingAddress: selectedAddress,
-      paymentInfo: {
-        paymentMethod,
-        ...cardInfo,
-      },
+      paymentMethod: paymentMethod,
     };
 
+    if (paymentMethod === 'creditCard') {
+      console.log('Credit card info:', cardInfo);
+    }
+
+    console.log('Placing order with data:', orderData);
     dispatch(createOrder(orderData));
   };
 
@@ -141,7 +152,7 @@ const CheckoutPage: React.FC = () => {
             <Typography variant="h6" gutterBottom>
               Shipping Address
             </Typography>
-            
+
             {addresses.length > 0 && (
               <FormControl component="fieldset" sx={{ mb: 3, width: '100%' }}>
                 <FormLabel component="legend">Select an address</FormLabel>
@@ -178,7 +189,7 @@ const CheckoutPage: React.FC = () => {
                 </RadioGroup>
               </FormControl>
             )}
-            
+
             {(useNewAddress || addresses.length === 0) && (
               <Grid container spacing={3}>
                 <Grid item xs={12}>
@@ -247,9 +258,10 @@ const CheckoutPage: React.FC = () => {
               Payment Method
             </Typography>
             <FormControl component="fieldset" sx={{ mb: 3 }}>
+              <FormLabel component="legend">Select a payment method</FormLabel>
               <RadioGroup
                 aria-label="payment-method"
-                name="paymentMethod"
+                name="payment-method"
                 value={paymentMethod}
                 onChange={handlePaymentMethodChange}
               >
@@ -270,55 +282,55 @@ const CheckoutPage: React.FC = () => {
                 />
               </RadioGroup>
             </FormControl>
-            
+
             {paymentMethod === 'creditCard' && (
-              <Grid container spacing={3}>
-                <Grid item xs={12}>
-                  <TextField
-                    required
-                    id="cardName"
-                    name="cardName"
-                    label="Name on card"
-                    fullWidth
-                    value={cardInfo.cardName}
-                    onChange={handleCardInfoChange}
-                  />
+              <Box>
+                <Typography variant="subtitle1" gutterBottom>
+                  Card Details
+                </Typography>
+                <Grid container spacing={2}>
+                  <Grid item xs={12}>
+                    <TextField
+                      required
+                      fullWidth
+                      label="Name on Card"
+                      name="cardName"
+                      value={cardInfo.cardName}
+                      onChange={handleCardInfoChange}
+                    />
+                  </Grid>
+                  <Grid item xs={12}>
+                    <TextField
+                      required
+                      fullWidth
+                      label="Card Number"
+                      name="cardNumber"
+                      value={cardInfo.cardNumber}
+                      onChange={handleCardInfoChange}
+                    />
+                  </Grid>
+                  <Grid item xs={6}>
+                    <TextField
+                      required
+                      fullWidth
+                      label="Expiry Date (MM/YY)"
+                      name="expiryDate"
+                      value={cardInfo.expiryDate}
+                      onChange={handleCardInfoChange}
+                    />
+                  </Grid>
+                  <Grid item xs={6}>
+                    <TextField
+                      required
+                      fullWidth
+                      label="CVV"
+                      name="cvv"
+                      value={cardInfo.cvv}
+                      onChange={handleCardInfoChange}
+                    />
+                  </Grid>
                 </Grid>
-                <Grid item xs={12}>
-                  <TextField
-                    required
-                    id="cardNumber"
-                    name="cardNumber"
-                    label="Card number"
-                    fullWidth
-                    value={cardInfo.cardNumber}
-                    onChange={handleCardInfoChange}
-                  />
-                </Grid>
-                <Grid item xs={12} sm={6}>
-                  <TextField
-                    required
-                    id="expiryDate"
-                    name="expiryDate"
-                    label="Expiry date (MM/YY)"
-                    fullWidth
-                    value={cardInfo.expiryDate}
-                    onChange={handleCardInfoChange}
-                  />
-                </Grid>
-                <Grid item xs={12} sm={6}>
-                  <TextField
-                    required
-                    id="cvv"
-                    name="cvv"
-                    label="CVV"
-                    helperText="Last three digits on signature strip"
-                    fullWidth
-                    value={cardInfo.cvv}
-                    onChange={handleCardInfoChange}
-                  />
-                </Grid>
-              </Grid>
+              </Box>
             )}
           </Box>
         );
@@ -328,7 +340,7 @@ const CheckoutPage: React.FC = () => {
             <Typography variant="h6" gutterBottom>
               Order Summary
             </Typography>
-            
+
             {items.map((item) => (
               <Box key={item._id} sx={{ display: 'flex', mb: 2 }}>
                 <Box sx={{ width: 80, height: 80, mr: 2 }}>
@@ -354,9 +366,9 @@ const CheckoutPage: React.FC = () => {
                 </Box>
               </Box>
             ))}
-            
+
             <Divider sx={{ my: 2 }} />
-            
+
             <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
               <Typography variant="body1">Subtotal</Typography>
               <Typography variant="body1">${totalAmount.toFixed(2)}</Typography>
@@ -369,13 +381,25 @@ const CheckoutPage: React.FC = () => {
               <Typography variant="body1">Tax</Typography>
               <Typography variant="body1">${(totalAmount * 0.1).toFixed(2)}</Typography>
             </Box>
-            
+
             <Divider sx={{ my: 2 }} />
-            
+
             <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
               <Typography variant="h6">Total</Typography>
               <Typography variant="h6">${(totalAmount + totalAmount * 0.1).toFixed(2)}</Typography>
             </Box>
+
+            {validationError && (
+              <Alert severity="error" sx={{ mt: 2, mb: 2 }}>
+                {validationError}
+              </Alert>
+            )}
+
+            {error && (
+              <Alert severity="error" sx={{ mt: 2, mb: 2 }}>
+                {error}
+              </Alert>
+            )}
           </Box>
         );
       default:
@@ -385,14 +409,21 @@ const CheckoutPage: React.FC = () => {
 
   const isNextDisabled = () => {
     if (activeStep === 0) {
-      return useNewAddress
-        ? !newAddress.street || !newAddress.city || !newAddress.state || !newAddress.postalCode || !newAddress.country
-        : !selectedAddressId;
+      if (useNewAddress) {
+        return !newAddress.street || !newAddress.city || !newAddress.state || !newAddress.postalCode || !newAddress.country;
+      } else {
+        return !selectedAddressId;
+      }
+    } else if (activeStep === 1) {
+      if (!paymentMethod) return true;
+
+      if (paymentMethod === 'creditCard') {
+        return !cardInfo.cardName || !cardInfo.cardNumber || !cardInfo.expiryDate || !cardInfo.cvv;
+      }
+
+      return false;
     }
-    if (activeStep === 1) {
-      return paymentMethod === 'creditCard' && 
-        (!cardInfo.cardName || !cardInfo.cardNumber || !cardInfo.expiryDate || !cardInfo.cvv);
-    }
+
     return false;
   };
 
@@ -401,9 +432,7 @@ const CheckoutPage: React.FC = () => {
       <Typography variant="h4" component="h1" gutterBottom>
         Checkout
       </Typography>
-      
-      {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
-      
+
       <Paper elevation={3} sx={{ p: 3 }}>
         <Stepper activeStep={activeStep} sx={{ mb: 4 }}>
           {steps.map((label) => (
@@ -412,18 +441,18 @@ const CheckoutPage: React.FC = () => {
             </Step>
           ))}
         </Stepper>
-        
+
         <Box sx={{ mb: 4 }}>
           {getStepContent(activeStep)}
         </Box>
-        
+
         <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
           {activeStep !== 0 && (
             <Button onClick={handleBack} sx={{ mr: 1 }}>
               Back
             </Button>
           )}
-          
+
           {activeStep === steps.length - 1 ? (
             <Button
               variant="contained"

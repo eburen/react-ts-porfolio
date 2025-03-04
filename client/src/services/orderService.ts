@@ -27,8 +27,15 @@ interface OrderData {
 
 export const orderService = {
   createOrder: async (orderData: OrderData): Promise<any> => {
-    const response = await api.post('/orders', orderData);
-    return response.data;
+    try {
+      console.log('orderService.createOrder - sending data:', orderData);
+      const response = await api.post('/orders', orderData);
+      console.log('orderService.createOrder - response:', response.data);
+      return response.data;
+    } catch (error) {
+      console.error('orderService.createOrder - error:', error);
+      throw error;
+    }
   },
 
   getOrderById: async (orderId: string): Promise<any> => {
