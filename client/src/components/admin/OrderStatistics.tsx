@@ -16,7 +16,7 @@ import {
     CheckCircle as DeliveredIcon,
     Cancel as CancelledIcon,
 } from '@mui/icons-material';
-import { RootState, AppDispatch } from '../../store/store';
+import { RootState, AppDispatch } from '../../store';
 import { getAllOrders } from '../../store/slices/orderSlice';
 
 const OrderStatistics: React.FC = () => {

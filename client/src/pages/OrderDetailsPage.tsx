@@ -21,7 +21,7 @@ import {
 import { format } from 'date-fns';
 import OrderTracker from '../components/orders/OrderTracker';
 import { getOrderById, cancelOrder, clearOrderSuccess } from '../store/slices/orderSlice';
-import { RootState, AppDispatch } from '../store/store';
+import { RootState, AppDispatch } from '../store';
 
 const OrderDetailsPage: React.FC = () => {
     const { id } = useParams<{ id: string }>();

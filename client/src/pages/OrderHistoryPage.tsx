@@ -23,7 +23,7 @@ import {
 } from '@mui/material';
 import { format } from 'date-fns';
 import { getUserOrders, cancelOrder, clearOrderSuccess } from '../store/slices/orderSlice';
-import { RootState, AppDispatch } from '../store/store';
+import { RootState, AppDispatch } from '../store';
 
 const OrderHistoryPage: React.FC = () => {
     const dispatch = useDispatch<AppDispatch>();

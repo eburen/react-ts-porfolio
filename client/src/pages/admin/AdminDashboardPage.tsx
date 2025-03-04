@@ -24,7 +24,7 @@ import {
     Add as AddIcon,
     ShoppingBag as ShoppingBagIcon
 } from '@mui/icons-material';
-import { RootState } from '../../store/store';
+import { RootState } from '../../store';
 import OrderStatistics from '../../components/admin/OrderStatistics';
 
 const AdminDashboardPage: React.FC = () => {

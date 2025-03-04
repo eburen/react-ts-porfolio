@@ -40,7 +40,7 @@ import {
     updatePaymentStatus,
     clearOrderSuccess,
 } from '../../store/slices/orderSlice';
-import { RootState, AppDispatch } from '../../store/store';
+import { RootState, AppDispatch } from '../../store';
 import { exportToCsv } from '../../utils/exportToCsv';
 
 const OrderManagementPage: React.FC = () => {
