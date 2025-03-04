@@ -29,7 +29,6 @@ export const protect = async (req: Request, res: Response, next: NextFunction) =
     // Check if token exists in headers
     if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
       token = req.headers.authorization.split(' ')[1];
-      console.log('Token extracted from Authorization header');
     }
 
     if (!token) {
@@ -60,7 +59,7 @@ export const protect = async (req: Request, res: Response, next: NextFunction) =
     next();
   } catch (error) {
     console.error('Auth middleware error:', error);
-    res.status(401).json({ message: 'Not authorized, token failed' });
+    return res.status(401).json({ message: 'Not authorized, token failed' });
   }
 };
 

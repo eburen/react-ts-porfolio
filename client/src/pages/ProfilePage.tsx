@@ -119,6 +119,10 @@ const ProfilePage: React.FC = () => {
                 component={Link}
                 to="/orders"
                 startIcon={<ReceiptIcon />}
+                onClick={(e) => {
+                  e.preventDefault();
+                  window.location.href = '/orders';
+                }}
               >
                 View All Orders
               </Button>

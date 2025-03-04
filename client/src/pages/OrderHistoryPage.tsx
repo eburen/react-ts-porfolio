@@ -25,7 +25,7 @@ import { format } from 'date-fns';
 import { getUserOrders, cancelOrder, clearOrderSuccess } from '../store/slices/orderSlice';
 import { RootState, AppDispatch } from '../store';
 
-const OrderHistoryPage: React.FC = () => {
+const OrderHistoryPage = () => {
     const dispatch = useDispatch<AppDispatch>();
     const navigate = useNavigate();
     const [cancelOrderId, setCancelOrderId] = useState<string | null>(null);
@@ -34,16 +34,13 @@ const OrderHistoryPage: React.FC = () => {
     const { orders, loading, error, success } = useSelector((state: RootState) => state.orders);
     const { userInfo } = useSelector((state: RootState) => state.auth);
 
-    console.log('OrderHistoryPage rendered', { userInfo, orders, loading, error });
-
     useEffect(() => {
-        console.log('OrderHistoryPage useEffect - auth check', { userInfo });
         if (!userInfo) {
             navigate('/login');
-        } else {
-            console.log('Dispatching getUserOrders');
-            dispatch(getUserOrders());
+            return;
         }
+
+        dispatch(getUserOrders());
     }, [dispatch, navigate, userInfo]);
 
     useEffect(() => {
@@ -102,26 +99,32 @@ const OrderHistoryPage: React.FC = () => {
     };
 
     const formatDate = (dateString: string) => {
-        return format(new Date(dateString), 'MMM dd, yyyy');
+        try {
+            return format(new Date(dateString), 'MMM dd, yyyy');
+        } catch (error) {
+            return 'Invalid date';
+        }
     };
 
-    console.log('OrderHistoryPage rendering', { orders, loading, error });
-
-    return (
-        <Box sx={{ maxWidth: 1200, mx: 'auto', p: 2 }}>
-            <Typography variant="h4" component="h1" gutterBottom>
-                Order History
-            </Typography>
-
-            {loading ? (
+    const renderContent = () => {
+        if (loading) {
+            return (
                 <Box sx={{ display: 'flex', justifyContent: 'center', my: 4 }}>
                     <CircularProgress />
                 </Box>
-            ) : error ? (
+            );
+        }
+
+        if (error) {
+            return (
                 <Alert severity="error" sx={{ my: 2 }}>
                     {error}
                 </Alert>
-            ) : orders && orders.length === 0 ? (
+            );
+        }
+
+        if (!orders || orders.length === 0) {
+            return (
                 <Paper sx={{ p: 3, textAlign: 'center' }}>
                     <Typography variant="body1" gutterBottom>
                         You haven't placed any orders yet.
@@ -136,67 +139,79 @@ const OrderHistoryPage: React.FC = () => {
                         Start Shopping
                     </Button>
                 </Paper>
-            ) : (
-                <TableContainer component={Paper} sx={{ mt: 3 }}>
-                    <Table>
-                        <TableHead>
-                            <TableRow sx={{ backgroundColor: 'primary.main' }}>
-                                <TableCell sx={{ color: 'white' }}>Order ID</TableCell>
-                                <TableCell sx={{ color: 'white' }}>Date</TableCell>
-                                <TableCell sx={{ color: 'white' }}>Total</TableCell>
-                                <TableCell sx={{ color: 'white' }}>Status</TableCell>
-                                <TableCell sx={{ color: 'white' }}>Payment</TableCell>
-                                <TableCell sx={{ color: 'white' }}>Actions</TableCell>
-                            </TableRow>
-                        </TableHead>
-                        <TableBody>
-                            {orders && orders.map((order) => (
-                                <TableRow key={order._id} hover>
-                                    <TableCell>{order._id.substring(order._id.length - 8)}</TableCell>
-                                    <TableCell>{formatDate(order.createdAt)}</TableCell>
-                                    <TableCell>${order.totalAmount.toFixed(2)}</TableCell>
-                                    <TableCell>
-                                        <Chip
-                                            label={order.status.charAt(0).toUpperCase() + order.status.slice(1)}
-                                            color={getStatusColor(order.status) as any}
+            );
+        }
+
+        return (
+            <TableContainer component={Paper} sx={{ mt: 3 }}>
+                <Table>
+                    <TableHead>
+                        <TableRow sx={{ backgroundColor: 'primary.main' }}>
+                            <TableCell sx={{ color: 'white' }}>Order ID</TableCell>
+                            <TableCell sx={{ color: 'white' }}>Date</TableCell>
+                            <TableCell sx={{ color: 'white' }}>Total</TableCell>
+                            <TableCell sx={{ color: 'white' }}>Status</TableCell>
+                            <TableCell sx={{ color: 'white' }}>Payment</TableCell>
+                            <TableCell sx={{ color: 'white' }}>Actions</TableCell>
+                        </TableRow>
+                    </TableHead>
+                    <TableBody>
+                        {orders.map((order) => (
+                            <TableRow key={order._id} hover>
+                                <TableCell>{order._id.substring(order._id.length - 8)}</TableCell>
+                                <TableCell>{formatDate(order.createdAt)}</TableCell>
+                                <TableCell>${order.totalAmount.toFixed(2)}</TableCell>
+                                <TableCell>
+                                    <Chip
+                                        label={order.status.charAt(0).toUpperCase() + order.status.slice(1)}
+                                        color={getStatusColor(order.status) as any}
+                                        size="small"
+                                    />
+                                </TableCell>
+                                <TableCell>
+                                    <Chip
+                                        label={order.paymentStatus.charAt(0).toUpperCase() + order.paymentStatus.slice(1)}
+                                        color={getPaymentStatusColor(order.paymentStatus) as any}
+                                        size="small"
+                                    />
+                                </TableCell>
+                                <TableCell>
+                                    <Box sx={{ display: 'flex', gap: 1 }}>
+                                        <Button
+                                            variant="outlined"
                                             size="small"
-                                        />
-                                    </TableCell>
-                                    <TableCell>
-                                        <Chip
-                                            label={order.paymentStatus.charAt(0).toUpperCase() + order.paymentStatus.slice(1)}
-                                            color={getPaymentStatusColor(order.paymentStatus) as any}
-                                            size="small"
-                                        />
-                                    </TableCell>
-                                    <TableCell>
-                                        <Box sx={{ display: 'flex', gap: 1 }}>
+                                            component={Link}
+                                            to={`/orders/${order._id}`}
+                                        >
+                                            Details
+                                        </Button>
+                                        {(order.status === 'pending' || order.status === 'processing') && (
                                             <Button
                                                 variant="outlined"
+                                                color="error"
                                                 size="small"
-                                                component={Link}
-                                                to={`/orders/${order._id}`}
+                                                onClick={() => handleOpenCancelDialog(order._id)}
                                             >
-                                                Details
+                                                Cancel
                                             </Button>
-                                            {(order.status === 'pending' || order.status === 'processing') && (
-                                                <Button
-                                                    variant="outlined"
-                                                    color="error"
-                                                    size="small"
-                                                    onClick={() => handleOpenCancelDialog(order._id)}
-                                                >
-                                                    Cancel
-                                                </Button>
-                                            )}
-                                        </Box>
-                                    </TableCell>
-                                </TableRow>
-                            ))}
-                        </TableBody>
-                    </Table>
-                </TableContainer>
-            )}
+                                        )}
+                                    </Box>
+                                </TableCell>
+                            </TableRow>
+                        ))}
+                    </TableBody>
+                </Table>
+            </TableContainer>
+        );
+    };
+
+    return (
+        <Box sx={{ maxWidth: 1200, mx: 'auto', p: 2 }}>
+            <Typography variant="h4" component="h1" gutterBottom>
+                Order History
+            </Typography>
+
+            {renderContent()}
 
             {/* Cancel Order Dialog */}
             <Dialog open={openCancelDialog} onClose={handleCloseCancelDialog}>

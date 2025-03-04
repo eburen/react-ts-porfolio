@@ -183,7 +183,12 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
           </ListItemIcon>
           <ListItemText>Wishlist</ListItemText>
         </MenuItem>
-        <MenuItem component={Link} to="/orders" onClick={handleMenuClose}>
+        <MenuItem
+          component={Link}
+          to="/orders"
+          onClick={handleMenuClose}
+          sx={{ '&:hover': { backgroundColor: 'rgba(0, 0, 0, 0.04)' } }}
+        >
           <ListItemIcon>
             <ReceiptIcon fontSize="small" />
           </ListItemIcon>

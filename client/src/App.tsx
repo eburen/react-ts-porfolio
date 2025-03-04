@@ -89,16 +89,22 @@ function App() {
                         } />
 
                         {/* Order routes */}
-                        <Route path="/orders" element={
-                            <ProtectedRoute>
-                                <OrderHistoryPage />
-                            </ProtectedRoute>
-                        } />
-                        <Route path="/orders/:id" element={
-                            <ProtectedRoute>
-                                <OrderDetailsPage />
-                            </ProtectedRoute>
-                        } />
+                        <Route
+                            path="/orders"
+                            element={
+                                <ProtectedRoute>
+                                    <OrderHistoryPage />
+                                </ProtectedRoute>
+                            }
+                        />
+                        <Route
+                            path="/orders/:id"
+                            element={
+                                <ProtectedRoute>
+                                    <OrderDetailsPage />
+                                </ProtectedRoute>
+                            }
+                        />
 
                         {/* Admin routes */}
                         <Route path="/admin" element={
