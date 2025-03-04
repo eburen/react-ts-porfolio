@@ -29,6 +29,7 @@ import StockManagementPage from './pages/admin/StockManagementPage';
 import OrderManagementPage from './pages/admin/OrderManagementPage';
 
 // Components
+import Layout from './components/layout/Layout';
 import ProtectedRoute from './components/auth/ProtectedRoute';
 
 // Theme
@@ -70,99 +71,101 @@ function App() {
         <ThemeProvider theme={theme}>
             <CssBaseline />
             <Router>
-                <Routes>
-                    <Route path="/" element={<HomePage />} />
-                    <Route path="/login" element={<LoginPage />} />
-                    <Route path="/register" element={<RegisterPage />} />
+                <Layout>
+                    <Routes>
+                        <Route path="/" element={<HomePage />} />
+                        <Route path="/login" element={<LoginPage />} />
+                        <Route path="/register" element={<RegisterPage />} />
 
-                    {/* Product routes */}
-                    <Route path="/products" element={<ProductsPage />} />
-                    <Route path="/products/:id" element={<ProductDetailsPage />} />
+                        {/* Product routes */}
+                        <Route path="/products" element={<ProductsPage />} />
+                        <Route path="/products/:id" element={<ProductDetailsPage />} />
 
-                    {/* Protected routes */}
-                    <Route path="/profile" element={
-                        <ProtectedRoute>
-                            <ProfilePage />
-                        </ProtectedRoute>
-                    } />
+                        {/* Protected routes */}
+                        <Route path="/profile" element={
+                            <ProtectedRoute>
+                                <ProfilePage />
+                            </ProtectedRoute>
+                        } />
 
-                    {/* Order routes */}
-                    <Route path="/orders" element={
-                        <ProtectedRoute>
-                            <OrderHistoryPage />
-                        </ProtectedRoute>
-                    } />
-                    <Route path="/orders/:id" element={
-                        <ProtectedRoute>
-                            <OrderDetailsPage />
-                        </ProtectedRoute>
-                    } />
+                        {/* Order routes */}
+                        <Route path="/orders" element={
+                            <ProtectedRoute>
+                                <OrderHistoryPage />
+                            </ProtectedRoute>
+                        } />
+                        <Route path="/orders/:id" element={
+                            <ProtectedRoute>
+                                <OrderDetailsPage />
+                            </ProtectedRoute>
+                        } />
 
-                    {/* Admin routes */}
-                    <Route path="/admin" element={
-                        <ProtectedRoute requireAdmin>
-                            <AdminDashboardPage />
-                        </ProtectedRoute>
-                    } />
+                        {/* Admin routes */}
+                        <Route path="/admin" element={
+                            <ProtectedRoute requireAdmin>
+                                <AdminDashboardPage />
+                            </ProtectedRoute>
+                        } />
 
-                    <Route path="/admin/products" element={
-                        <ProtectedRoute requireAdmin>
-                            <ProductManagementPage />
-                        </ProtectedRoute>
-                    } />
+                        <Route path="/admin/products" element={
+                            <ProtectedRoute requireAdmin>
+                                <ProductManagementPage />
+                            </ProtectedRoute>
+                        } />
 
-                    <Route path="/admin/products/new" element={
-                        <ProtectedRoute requireAdmin>
-                            <ProductFormPage />
-                        </ProtectedRoute>
-                    } />
+                        <Route path="/admin/products/new" element={
+                            <ProtectedRoute requireAdmin>
+                                <ProductFormPage />
+                            </ProtectedRoute>
+                        } />
 
-                    <Route path="/admin/products/edit/:id" element={
-                        <ProtectedRoute requireAdmin>
-                            <ProductFormPage />
-                        </ProtectedRoute>
-                    } />
+                        <Route path="/admin/products/edit/:id" element={
+                            <ProtectedRoute requireAdmin>
+                                <ProductFormPage />
+                            </ProtectedRoute>
+                        } />
 
-                    <Route path="/admin/products/stock/:id" element={
-                        <ProtectedRoute requireAdmin>
-                            <StockManagementPage />
-                        </ProtectedRoute>
-                    } />
+                        <Route path="/admin/products/stock/:id" element={
+                            <ProtectedRoute requireAdmin>
+                                <StockManagementPage />
+                            </ProtectedRoute>
+                        } />
 
-                    <Route path="/admin/sales" element={
-                        <ProtectedRoute requireAdmin>
-                            <SalesManagementPage />
-                        </ProtectedRoute>
-                    } />
+                        <Route path="/admin/sales" element={
+                            <ProtectedRoute requireAdmin>
+                                <SalesManagementPage />
+                            </ProtectedRoute>
+                        } />
 
-                    <Route path="/admin/orders" element={
-                        <ProtectedRoute requireAdmin>
-                            <OrderManagementPage />
-                        </ProtectedRoute>
-                    } />
+                        <Route path="/admin/orders" element={
+                            <ProtectedRoute requireAdmin>
+                                <OrderManagementPage />
+                            </ProtectedRoute>
+                        } />
 
-                    <Route path="/cart" element={<CartPage />} />
+                        <Route path="/cart" element={<CartPage />} />
 
-                    <Route path="/wishlist" element={
-                        <ProtectedRoute>
-                            <WishlistPage />
-                        </ProtectedRoute>
-                    } />
+                        <Route path="/wishlist" element={
+                            <ProtectedRoute>
+                                <WishlistPage />
+                            </ProtectedRoute>
+                        } />
 
-                    <Route path="/checkout" element={
-                        <ProtectedRoute>
-                            <CheckoutPage />
-                        </ProtectedRoute>
-                    } />
+                        <Route path="/checkout" element={
+                            <ProtectedRoute>
+                                <CheckoutPage />
+                            </ProtectedRoute>
+                        } />
 
-                    <Route path="/order-confirmation/:orderId" element={
-                        <ProtectedRoute>
-                            <OrderConfirmationPage />
-                        </ProtectedRoute>
-                    } />
+                        <Route path="/order-confirmation/:orderId" element={
+                            <ProtectedRoute>
+                                <OrderConfirmationPage />
+                            </ProtectedRoute>
+                        } />
 
-                    <Route path="*" element={<NotFoundPage />} />
-                </Routes>
+                        <Route path="*" element={<NotFoundPage />} />
+                    </Routes>
+                </Layout>
             </Router>
         </ThemeProvider>
     );
