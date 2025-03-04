@@ -1,25 +1,23 @@
 import { configureStore } from '@reduxjs/toolkit';
 import authReducer from './slices/authSlice';
+import userReducer from './slices/userSlice';
 import productReducer from './slices/productSlice';
 import cartReducer from './slices/cartSlice';
-import userReducer from './slices/userSlice';
-import reviewReducer from './slices/reviewSlice';
-import wishlistReducer from './slices/wishlistSlice';
 import orderReducer from './slices/orderSlice';
+import wishlistReducer from './slices/wishlistSlice';
+import reviewReducer from './slices/reviewSlice';
 
 export const store = configureStore({
   reducer: {
     auth: authReducer,
+    user: userReducer,
     products: productReducer,
     cart: cartReducer,
-    user: userReducer,
-    reviews: reviewReducer,
-    wishlist: wishlistReducer,
     orders: orderReducer,
-    // Add other reducers here as we develop them
+    wishlist: wishlistReducer,
+    reviews: reviewReducer,
   },
 });
 
-// Infer the `RootState` and `AppDispatch` types from the store itself
 export type RootState = ReturnType<typeof store.getState>;
-export type AppDispatch = typeof store.dispatch; 
+export type AppDispatch = typeof store.dispatch;

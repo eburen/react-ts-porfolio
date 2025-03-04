@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { useSelector, useDispatch } from 'react-redux';
+import { useSelector } from 'react-redux';
 import { useNavigate, Link } from 'react-router-dom';
 import {
     Container,
@@ -12,7 +12,8 @@ import {
     CardActions,
     Button,
     Divider,
-    Avatar
+    Avatar,
+    CircularProgress
 } from '@mui/material';
 import { Link as RouterLink } from 'react-router-dom';
 import {
@@ -28,14 +29,30 @@ import { RootState } from '../../store/store';
 import OrderStatistics from '../../components/admin/OrderStatistics';
 
 const AdminDashboardPage: React.FC = () => {
-    const { userInfo } = useSelector((state: RootState) => state.auth);
+    const { userInfo, isAuthenticated, loading } = useSelector((state: RootState) => state.auth);
     const navigate = useNavigate();
 
     useEffect(() => {
-        if (!userInfo || userInfo.role !== 'admin') {
+        // Only redirect if we're sure authentication is complete (not loading)
+        // and either the user is not authenticated or not an admin
+        if (!loading && (!isAuthenticated || (userInfo && userInfo.role !== 'admin'))) {
             navigate('/login');
         }
-    }, [userInfo, navigate]);
+    }, [userInfo, isAuthenticated, loading, navigate]);
+
+    // Show loading state while checking authentication
+    if (loading) {
+        return (
+            <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
+                <CircularProgress />
+            </Box>
+        );
+    }
+
+    // Don't render anything if not authenticated or not admin
+    if (!isAuthenticated || (userInfo && userInfo.role !== 'admin')) {
+        return null;
+    }
 
     return (
         <Layout>

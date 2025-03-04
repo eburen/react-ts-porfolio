@@ -58,16 +58,16 @@ const OrderManagementPage: React.FC = () => {
     const [searchTerm, setSearchTerm] = useState('');
     const [filteredOrders, setFilteredOrders] = useState<any[]>([]);
 
-    const { adminOrders, loading, error, success } = useSelector((state: RootState) => state.orders);
-    const { userInfo } = useSelector((state: RootState) => state.auth);
+    const { adminOrders, loading: ordersLoading, error, success } = useSelector((state: RootState) => state.orders);
+    const { userInfo, isAuthenticated, loading: authLoading } = useSelector((state: RootState) => state.auth);
 
     useEffect(() => {
-        if (!userInfo || userInfo.role !== 'admin') {
-            navigate('/login');
-        } else {
+        if (!authLoading && isAuthenticated && userInfo?.role === 'admin') {
             dispatch(getAllOrders({ page, limit }));
+        } else if (!authLoading && (!isAuthenticated || (userInfo && userInfo.role !== 'admin'))) {
+            navigate('/login');
         }
-    }, [dispatch, navigate, userInfo, page, limit]);
+    }, [dispatch, navigate, userInfo, isAuthenticated, authLoading, page, limit]);
 
     useEffect(() => {
         if (adminOrders && adminOrders.orders) {
@@ -92,6 +92,18 @@ const OrderManagementPage: React.FC = () => {
             setOpenPaymentDialog(false);
         }
     }, [success, dispatch]);
+
+    if (authLoading) {
+        return (
+            <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
+                <CircularProgress />
+            </Box>
+        );
+    }
+
+    if (!isAuthenticated || (userInfo && userInfo.role !== 'admin')) {
+        return null;
+    }
 
     const handlePageChange = (event: React.ChangeEvent<unknown>, value: number) => {
         setPage(value);
@@ -259,7 +271,7 @@ const OrderManagementPage: React.FC = () => {
                     />
                 </Paper>
 
-                {loading ? (
+                {ordersLoading ? (
                     <Box sx={{ display: 'flex', justifyContent: 'center', my: 4 }}>
                         <CircularProgress />
                     </Box>

@@ -1,4 +1,6 @@
 import axios from 'axios';
+import { store } from '../store';
+import { logout } from '../store/slices/authSlice';
 
 // For Vite, use import.meta.env
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5001/api';
@@ -28,8 +30,15 @@ api.interceptors.response.use(
   (error) => {
     // Handle 401 Unauthorized errors (token expired or invalid)
     if (error.response && error.response.status === 401) {
-      localStorage.removeItem('token');
-      window.location.href = '/login';
+      // Dispatch logout action to clear auth state
+      store.dispatch(logout());
+      
+      // Only redirect to login if not already on login page
+      if (!window.location.pathname.includes('/login')) {
+        // Save the current location to redirect back after login
+        const currentPath = window.location.pathname;
+        window.location.href = `/login?redirect=${encodeURIComponent(currentPath)}`;
+      }
     }
     return Promise.reject(error);
   }
