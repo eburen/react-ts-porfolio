@@ -32,13 +32,16 @@ export const getAllOrders = async (req: Request, res: Response) => {
 
 // Get user orders
 export const getUserOrders = async (req: Request, res: Response) => {
+  console.log('getUserOrders controller called', { userId: req.user._id });
   try {
     const orders = await Order.find({ user: req.user._id })
       .populate('items.product', 'name price imageUrl')
       .sort({ createdAt: -1 });
 
+    console.log(`Found ${orders.length} orders for user ${req.user._id}`);
     res.json(orders);
   } catch (error: any) {
+    console.error('Error in getUserOrders controller:', error);
     res.status(500).json({ message: error.message });
   }
 };

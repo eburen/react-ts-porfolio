@@ -87,8 +87,12 @@ export const getUserOrders = createAsyncThunk(
   'orders/getUserOrders',
   async (_, { rejectWithValue }) => {
     try {
-      return await orderService.getUserOrders();
+      console.log('getUserOrders thunk - making API call');
+      const response = await orderService.getUserOrders();
+      console.log('getUserOrders thunk - API response:', response);
+      return response;
     } catch (error: any) {
+      console.error('getUserOrders thunk - error:', error);
       return rejectWithValue(error.response?.data?.message || 'Failed to fetch orders');
     }
   }

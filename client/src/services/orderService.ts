@@ -37,8 +37,15 @@ export const orderService = {
   },
 
   getUserOrders: async (): Promise<any> => {
-    const response = await api.get('/orders');
-    return response.data;
+    console.log('orderService.getUserOrders - making API call to /orders');
+    try {
+      const response = await api.get('/orders');
+      console.log('orderService.getUserOrders - API response:', response.data);
+      return response.data;
+    } catch (error) {
+      console.error('orderService.getUserOrders - API error:', error);
+      throw error;
+    }
   },
 
   cancelOrder: async (orderId: string): Promise<any> => {

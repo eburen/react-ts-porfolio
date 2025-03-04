@@ -34,10 +34,14 @@ const OrderHistoryPage: React.FC = () => {
     const { orders, loading, error, success } = useSelector((state: RootState) => state.orders);
     const { userInfo } = useSelector((state: RootState) => state.auth);
 
+    console.log('OrderHistoryPage rendered', { userInfo, orders, loading, error });
+
     useEffect(() => {
+        console.log('OrderHistoryPage useEffect - auth check', { userInfo });
         if (!userInfo) {
             navigate('/login');
         } else {
+            console.log('Dispatching getUserOrders');
             dispatch(getUserOrders());
         }
     }, [dispatch, navigate, userInfo]);
@@ -101,6 +105,8 @@ const OrderHistoryPage: React.FC = () => {
         return format(new Date(dateString), 'MMM dd, yyyy');
     };
 
+    console.log('OrderHistoryPage rendering', { orders, loading, error });
+
     return (
         <Box sx={{ maxWidth: 1200, mx: 'auto', p: 2 }}>
             <Typography variant="h4" component="h1" gutterBottom>
@@ -115,7 +121,7 @@ const OrderHistoryPage: React.FC = () => {
                 <Alert severity="error" sx={{ my: 2 }}>
                     {error}
                 </Alert>
-            ) : orders.length === 0 ? (
+            ) : orders && orders.length === 0 ? (
                 <Paper sx={{ p: 3, textAlign: 'center' }}>
                     <Typography variant="body1" gutterBottom>
                         You haven't placed any orders yet.
@@ -144,7 +150,7 @@ const OrderHistoryPage: React.FC = () => {
                             </TableRow>
                         </TableHead>
                         <TableBody>
-                            {orders.map((order) => (
+                            {orders && orders.map((order) => (
                                 <TableRow key={order._id} hover>
                                     <TableCell>{order._id.substring(order._id.length - 8)}</TableCell>
                                     <TableCell>{formatDate(order.createdAt)}</TableCell>
