@@ -83,4 +83,67 @@ export const getCurrentUser = async (req: Request, res: Response) => {
     console.error('Get current user error:', error);
     res.status(500).json({ message: 'Server error', error: error.message });
   }
+};
+
+// Update user profile
+export const updateProfile = async (req: Request, res: Response) => {
+  try {
+    const {
+      name,
+      email,
+      password,
+      currentPassword,
+      birthDate,
+      favoriteCategories,
+      emailPreferences,
+      phoneNumber,
+      bio
+    } = req.body;
+
+    const user = await User.findById(req.user._id);
+
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    // Update basic info
+    if (name) user.name = name;
+    if (email) user.email = email;
+    
+    // Update additional profile fields
+    if (birthDate !== undefined) user.birthDate = birthDate;
+    if (favoriteCategories) user.favoriteCategories = favoriteCategories;
+    if (emailPreferences) user.emailPreferences = {
+      ...user.emailPreferences || {},
+      ...emailPreferences
+    };
+    if (phoneNumber !== undefined) user.phoneNumber = phoneNumber;
+    if (bio !== undefined) user.bio = bio;
+
+    // Handle password change
+    if (password && currentPassword) {
+      const isMatch = await user.comparePassword(currentPassword);
+      if (!isMatch) {
+        return res.status(400).json({ message: 'Current password is incorrect' });
+      }
+      user.password = password;
+    }
+
+    const updatedUser = await user.save();
+
+    res.json({
+      _id: updatedUser._id,
+      name: updatedUser.name,
+      email: updatedUser.email,
+      role: updatedUser.role,
+      birthDate: updatedUser.birthDate,
+      favoriteCategories: updatedUser.favoriteCategories,
+      emailPreferences: updatedUser.emailPreferences,
+      phoneNumber: updatedUser.phoneNumber,
+      bio: updatedUser.bio
+    });
+  } catch (error: any) {
+    console.error('Update profile error:', error);
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
 }; 

@@ -6,6 +6,15 @@ export interface IUser extends Document {
   email: string;
   password: string;
   role: 'user' | 'admin';
+  birthDate?: Date;
+  favoriteCategories?: string[];
+  emailPreferences?: {
+    newsletter: boolean;
+    promotions: boolean;
+    productUpdates: boolean;
+  };
+  phoneNumber?: string;
+  bio?: string;
   comparePassword(candidatePassword: string): Promise<boolean>;
 }
 
@@ -33,6 +42,35 @@ const userSchema = new Schema(
       type: String,
       enum: ['user', 'admin'],
       default: 'user',
+    },
+    birthDate: {
+      type: Date,
+    },
+    favoriteCategories: {
+      type: [String],
+      default: [],
+    },
+    emailPreferences: {
+      newsletter: {
+        type: Boolean,
+        default: true,
+      },
+      promotions: {
+        type: Boolean,
+        default: true,
+      },
+      productUpdates: {
+        type: Boolean,
+        default: true,
+      },
+    },
+    phoneNumber: {
+      type: String,
+      trim: true,
+    },
+    bio: {
+      type: String,
+      maxlength: [500, 'Bio cannot be more than 500 characters'],
     },
   },
   {

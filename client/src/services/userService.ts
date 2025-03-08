@@ -22,7 +22,7 @@ export const userService = {
   },
 
   updateProfile: async (userData: UpdateProfileData): Promise<any> => {
-    const response = await api.put('/users/profile', userData);
+    const response = await api.put('/auth/profile', userData);
     return response.data;
   },
 
