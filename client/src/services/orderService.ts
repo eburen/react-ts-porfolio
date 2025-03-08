@@ -45,10 +45,12 @@ export const orderService = {
 
   getUserOrders: async (): Promise<any> => {
     try {
+      console.log('orderService.getUserOrders - starting API call');
       const response = await api.get('/orders');
+      console.log('orderService.getUserOrders - API response:', response.data);
       return response.data;
     } catch (error) {
-      console.error('Error in getUserOrders service:', error);
+      console.error('orderService.getUserOrders - API error:', error);
       throw error;
     }
   },

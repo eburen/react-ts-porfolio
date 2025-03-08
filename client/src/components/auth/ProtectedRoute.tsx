@@ -12,6 +12,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, requireAdmin 
   const { isAuthenticated, loading, user } = useSelector((state: RootState) => state.auth);
   const location = useLocation();
 
+  // Show loading state while checking authentication
   if (loading) {
     return (
       <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
@@ -20,14 +21,18 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, requireAdmin 
     );
   }
 
+  // Redirect to login if not authenticated
   if (!isAuthenticated) {
-    return <Navigate to="/login" state={{ from: location }} replace />;
+    // Store the current location so we can redirect after login
+    return <Navigate to="/login" state={{ from: location.pathname }} replace />;
   }
 
+  // Redirect to home if admin access is required but user is not an admin
   if (requireAdmin && user?.role !== 'admin') {
     return <Navigate to="/" replace />;
   }
 
+  // Render the protected content
   return <>{children}</>;
 };
 

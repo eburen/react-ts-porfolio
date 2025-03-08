@@ -74,6 +74,21 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
     navigate('/login');
   };
 
+  // Modify the handleNavigateToOrders function to use React Router's navigation properly
+  const handleNavigateToOrders = () => {
+    // Close the menu first
+    handleMenuClose();
+    // Use the navigate function from useNavigate hook
+    // The replace:true ensures the current page is replaced in history
+    navigate('/orders', { replace: true });
+
+    // Add a small delay to ensure the component remounts properly
+    setTimeout(() => {
+      // Dispatch a custom event to force the OrderHistoryPage to reload data
+      window.dispatchEvent(new CustomEvent('order-history-reload'));
+    }, 100);
+  };
+
   return (
     <>
       <AppBar position="static">
@@ -184,9 +199,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
           <ListItemText>Wishlist</ListItemText>
         </MenuItem>
         <MenuItem
-          component={Link}
-          to="/orders"
-          onClick={handleMenuClose}
+          onClick={handleNavigateToOrders}
           sx={{ '&:hover': { backgroundColor: 'rgba(0, 0, 0, 0.04)' } }}
         >
           <ListItemIcon>

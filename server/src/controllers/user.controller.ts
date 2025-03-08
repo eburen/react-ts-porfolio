@@ -5,12 +5,24 @@ import Address from '../models/address.model';
 
 // Get user addresses
 export const getUserAddresses = async (req: Request, res: Response) => {
+  console.log('getUserAddresses controller called', { userId: req.user?._id });
+  
   try {
+    if (!req.user || !req.user._id) {
+      console.log('getUserAddresses: No user found in request');
+      return res.status(401).json({ message: 'User not authenticated' });
+    }
+    
     const addresses = await Address.find({ user: req.user._id });
-    res.json(addresses);
+    console.log(`Found ${addresses.length} addresses for user ${req.user._id}`);
+    
+    return res.json(addresses);
   } catch (error: any) {
     console.error('Get addresses error:', error);
-    res.status(500).json({ message: 'Server error', error: error.message });
+    return res.status(500).json({ 
+      message: 'Server error getting addresses', 
+      error: error.message 
+    });
   }
 };
 

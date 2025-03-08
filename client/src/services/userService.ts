@@ -27,8 +27,15 @@ export const userService = {
   },
 
   getAddresses: async (): Promise<any> => {
-    const response = await api.get('/users/addresses');
-    return response.data;
+    try {
+      console.log('userService.getAddresses: Making API call');
+      const response = await api.get('/users/addresses');
+      console.log('userService.getAddresses: Success', response.data);
+      return response.data;
+    } catch (error) {
+      console.error('userService.getAddresses: Error', error);
+      throw error;
+    }
   },
 
   addAddress: async (address: Address): Promise<any> => {

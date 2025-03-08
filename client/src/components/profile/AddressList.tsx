@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import {
   Box,
@@ -51,15 +51,33 @@ const AddressList: React.FC = () => {
   const dispatch = useDispatch<AppDispatch>();
   const { addresses, loading, error } = useSelector((state: RootState) => state.user);
 
+  // Use a ref to track if we've already attempted to load addresses
+  const hasLoadedRef = useRef(false);
+
   const [openDialog, setOpenDialog] = useState(false);
   const [addressForm, setAddressForm] = useState<AddressFormData>(initialAddressForm);
   const [isEditing, setIsEditing] = useState(false);
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
   const [addressToDelete, setAddressToDelete] = useState<string | null>(null);
 
+  // Log rendering
+  console.log('AddressList rendering:', { addresses, loading, error, hasLoadedRef });
+
+  // Only fetch addresses once when component mounts
   useEffect(() => {
-    dispatch(fetchUserAddresses());
-  }, [dispatch]);
+    if (!hasLoadedRef.current && !loading) {
+      console.log('Fetching addresses once');
+      dispatch(fetchUserAddresses());
+      hasLoadedRef.current = true;
+    }
+  }, [dispatch, loading]);
+
+  // Reset the ref when component unmounts
+  useEffect(() => {
+    return () => {
+      hasLoadedRef.current = false;
+    };
+  }, []);
 
   const handleOpenAddDialog = () => {
     setAddressForm(initialAddressForm);

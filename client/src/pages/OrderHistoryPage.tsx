@@ -1,6 +1,6 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import {
     Box,
     Typography,
@@ -28,20 +28,42 @@ import { RootState, AppDispatch } from '../store';
 const OrderHistoryPage = () => {
     const dispatch = useDispatch<AppDispatch>();
     const navigate = useNavigate();
+    const location = useLocation();
+
     const [cancelOrderId, setCancelOrderId] = useState<string | null>(null);
     const [openCancelDialog, setOpenCancelDialog] = useState(false);
 
     const { orders, loading, error, success } = useSelector((state: RootState) => state.orders);
-    const { userInfo } = useSelector((state: RootState) => state.auth);
+    const { user } = useSelector((state: RootState) => state.auth);
 
-    useEffect(() => {
-        if (!userInfo) {
+    // Create a memoized loadOrders function
+    const loadOrders = useCallback(() => {
+        console.log('Loading orders from OrderHistoryPage');
+        if (user) {
+            dispatch(getUserOrders());
+        } else {
             navigate('/login');
-            return;
         }
+    }, [dispatch, navigate, user]);
 
-        dispatch(getUserOrders());
-    }, [dispatch, navigate, userInfo]);
+    // Load orders on component mount and location change
+    useEffect(() => {
+        loadOrders();
+    }, [loadOrders, location.key]);
+
+    // Listen for the custom reload event
+    useEffect(() => {
+        const handleReload = () => {
+            console.log('Order history reload event received');
+            loadOrders();
+        };
+
+        window.addEventListener('order-history-reload', handleReload);
+
+        return () => {
+            window.removeEventListener('order-history-reload', handleReload);
+        };
+    }, [loadOrders]);
 
     useEffect(() => {
         if (success) {
