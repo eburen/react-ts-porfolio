@@ -1,5 +1,4 @@
-import React, { useEffect } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
+import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import {
     Box,
@@ -17,42 +16,133 @@ import {
     Card,
     CardMedia,
     CardContent,
+    Snackbar
 } from '@mui/material';
 import { format } from 'date-fns';
 import OrderTracker from '../components/orders/OrderTracker';
-import { getOrderById, cancelOrder, clearOrderSuccess } from '../store/slices/orderSlice';
-import { RootState, AppDispatch } from '../store';
+import api from '../services/api';
+
+// Define interface for order items
+interface OrderItem {
+    product: {
+        _id: string;
+        name: string;
+        price: number;
+        imageUrl: string;
+    };
+    quantity: number;
+    price: number;
+}
+
+// Define interface for order
+interface Order {
+    _id: string;
+    user: any;
+    items: OrderItem[];
+    shippingAddress: {
+        street: string;
+        city: string;
+        state: string;
+        postalCode: string;
+        country: string;
+    };
+    paymentMethod: string;
+    totalAmount: number;
+    status: string;
+    paymentStatus: string;
+    paidAt?: string;
+    deliveredAt?: string;
+    createdAt: string;
+    updatedAt: string;
+}
 
 const OrderDetailsPage: React.FC = () => {
     const { id } = useParams<{ id: string }>();
-    const dispatch = useDispatch<AppDispatch>();
     const navigate = useNavigate();
 
-    const { currentOrder, loading, error, success } = useSelector((state: RootState) => state.orders);
-    const { userInfo } = useSelector((state: RootState) => state.auth);
+    // Local state
+    const [order, setOrder] = useState<Order | null>(null);
+    const [loading, setLoading] = useState<boolean>(false);
+    const [error, setError] = useState<string | null>(null);
+    const [notification, setNotification] = useState({
+        open: false,
+        message: '',
+        type: 'success' as 'success' | 'error'
+    });
+    const [dataFetched, setDataFetched] = useState(false);
 
+    // Fetch order details once
     useEffect(() => {
-        if (!userInfo) {
-            navigate('/login');
-        } else if (id) {
-            dispatch(getOrderById(id));
-        }
-    }, [dispatch, navigate, userInfo, id]);
+        if (!id || dataFetched) return;
 
-    useEffect(() => {
-        if (success) {
-            dispatch(clearOrderSuccess());
-        }
-    }, [success, dispatch]);
+        const fetchOrderDetails = async () => {
+            setLoading(true);
+            try {
+                const token = localStorage.getItem('token');
+                if (!token) {
+                    navigate('/login');
+                    return;
+                }
 
-    const handleCancelOrder = () => {
-        if (id) {
-            dispatch(cancelOrder(id));
+                const response = await api.get(`/orders/${id}`);
+                setOrder(response.data);
+            } catch (err: any) {
+                console.error('Error fetching order details:', err);
+                setError(err.response?.data?.message || 'Failed to load order details');
+            } finally {
+                setLoading(false);
+                setDataFetched(true);
+            }
+        };
+
+        fetchOrderDetails();
+    }, [id, navigate, dataFetched]);
+
+    // Handle cancel order
+    const handleCancelOrder = async () => {
+        if (!id) return;
+
+        setLoading(true);
+        try {
+            await api.put(`/orders/${id}/cancel`);
+
+            // Update local state
+            if (order) {
+                setOrder({
+                    ...order,
+                    status: 'cancelled'
+                });
+            }
+
+            showNotification('Order cancelled successfully', 'success');
+        } catch (err: any) {
+            console.error('Error cancelling order:', err);
+            showNotification('Failed to cancel order', 'error');
+        } finally {
+            setLoading(false);
         }
     };
 
+    // Helper for showing notifications
+    const showNotification = (message: string, type: 'success' | 'error') => {
+        setNotification({
+            open: true,
+            message,
+            type
+        });
+    };
+
+    // Close notification
+    const handleCloseNotification = () => {
+        setNotification({
+            ...notification,
+            open: false
+        });
+    };
+
+    // Helper functions for UI
     const getStatusColor = (status: string) => {
-        switch (status) {
+        switch (status.toLowerCase()) {
             case 'pending':
                 return 'warning';
             case 'processing':
@@ -69,11 +159,11 @@ const OrderDetailsPage: React.FC = () => {
     };
 
     const getPaymentStatusColor = (status: string) => {
-        switch (status) {
+        switch (status.toLowerCase()) {
+            case 'paid':
+                return 'success';
             case 'pending':
                 return 'warning';
-            case 'completed':
-                return 'success';
             case 'failed':
                 return 'error';
             case 'refunded':
@@ -84,10 +174,15 @@ const OrderDetailsPage: React.FC = () => {
     };
 
     const formatDate = (dateString: string) => {
-        return format(new Date(dateString), 'MMM dd, yyyy');
+        try {
+            return format(new Date(dateString), 'PPP');
+        } catch (error) {
+            console.error('Error formatting date:', error);
+            return 'Invalid date';
+        }
     };
 
-    if (loading) {
+    if (loading && !order) {
         return (
             <Box sx={{ display: 'flex', justifyContent: 'center', my: 4 }}>
                 <CircularProgress />
@@ -103,7 +198,7 @@ const OrderDetailsPage: React.FC = () => {
         );
     }
 
-    if (!currentOrder) {
+    if (!order) {
         return (
             <Alert severity="info" sx={{ my: 2 }}>
                 Order not found
@@ -124,10 +219,10 @@ const OrderDetailsPage: React.FC = () => {
 
             {/* Order Tracker */}
             <OrderTracker
-                status={currentOrder.status}
-                createdAt={currentOrder.createdAt}
-                paidAt={currentOrder.paidAt}
-                deliveredAt={currentOrder.deliveredAt}
+                status={order.status}
+                createdAt={order.createdAt}
+                paidAt={order.paidAt}
+                deliveredAt={order.deliveredAt}
             />
 
             <Grid container spacing={3}>
@@ -139,76 +234,77 @@ const OrderDetailsPage: React.FC = () => {
                         </Typography>
                         <Divider sx={{ mb: 2 }} />
                         <List disablePadding>
-                            <ListItem disableGutters>
+                            <ListItem disablePadding sx={{ py: 1 }}>
                                 <ListItemText primary="Order ID" />
-                                <Typography variant="body2">{currentOrder._id}</Typography>
+                                <Typography variant="body2" color="text.secondary">
+                                    {order._id}
+                                </Typography>
                             </ListItem>
-                            <ListItem disableGutters>
+                            <ListItem disablePadding sx={{ py: 1 }}>
                                 <ListItemText primary="Date" />
-                                <Typography variant="body2">{formatDate(currentOrder.createdAt)}</Typography>
+                                <Typography variant="body2" color="text.secondary">
+                                    {formatDate(order.createdAt)}
+                                </Typography>
                             </ListItem>
-                            <ListItem disableGutters>
+                            <ListItem disablePadding sx={{ py: 1 }}>
+                                <ListItemText primary="Total" />
+                                <Typography variant="body2" color="text.primary" fontWeight={600}>
+                                    ${order.totalAmount.toFixed(2)}
+                                </Typography>
+                            </ListItem>
+                            <ListItem disablePadding sx={{ py: 1 }}>
                                 <ListItemText primary="Status" />
                                 <Chip
-                                    label={currentOrder.status.charAt(0).toUpperCase() + currentOrder.status.slice(1)}
-                                    color={getStatusColor(currentOrder.status) as any}
+                                    label={order.status.charAt(0).toUpperCase() + order.status.slice(1)}
+                                    color={getStatusColor(order.status) as any}
                                     size="small"
                                 />
                             </ListItem>
-                            <ListItem disableGutters>
-                                <ListItemText primary="Payment Status" />
+                            <ListItem disablePadding sx={{ py: 1 }}>
+                                <ListItemText primary="Payment" />
                                 <Chip
-                                    label={currentOrder.paymentStatus.charAt(0).toUpperCase() + currentOrder.paymentStatus.slice(1)}
-                                    color={getPaymentStatusColor(currentOrder.paymentStatus) as any}
+                                    label={order.paymentStatus.charAt(0).toUpperCase() + order.paymentStatus.slice(1)}
+                                    color={getPaymentStatusColor(order.paymentStatus) as any}
                                     size="small"
                                 />
                             </ListItem>
-                            <ListItem disableGutters>
-                                <ListItemText primary="Payment Method" />
-                                <Typography variant="body2">{currentOrder.paymentMethod}</Typography>
-                            </ListItem>
-                            {currentOrder.paidAt && (
-                                <ListItem disableGutters>
-                                    <ListItemText primary="Paid On" />
-                                    <Typography variant="body2">{formatDate(currentOrder.paidAt)}</Typography>
-                                </ListItem>
-                            )}
-                            {currentOrder.deliveredAt && (
-                                <ListItem disableGutters>
-                                    <ListItemText primary="Delivered On" />
-                                    <Typography variant="body2">{formatDate(currentOrder.deliveredAt)}</Typography>
-                                </ListItem>
-                            )}
                         </List>
 
-                        {(currentOrder.status === 'pending' || currentOrder.status === 'processing') && (
+                        {/* Show Cancel button only if the order is not delivered or cancelled */}
+                        {order.status !== 'delivered' && order.status !== 'cancelled' && (
                             <Button
                                 variant="outlined"
                                 color="error"
                                 fullWidth
                                 sx={{ mt: 2 }}
                                 onClick={handleCancelOrder}
+                                disabled={loading}
                             >
-                                Cancel Order
+                                {loading ? <CircularProgress size={24} /> : 'Cancel Order'}
                             </Button>
                         )}
                     </Paper>
 
-                    {/* Shipping Address */}
-                    <Paper sx={{ p: 3 }}>
+                    {/* Shipping Information */}
+                    <Paper sx={{ p: 3, mb: { xs: 3, md: 0 } }}>
                         <Typography variant="h6" gutterBottom>
-                            Shipping Address
+                            Shipping Information
                         </Typography>
                         <Divider sx={{ mb: 2 }} />
-                        <Typography variant="body2" paragraph>
-                            {currentOrder.shippingAddress.street}
+                        <Typography variant="body1" paragraph>
+                            {order.shippingAddress.street}
                         </Typography>
-                        <Typography variant="body2" paragraph>
-                            {currentOrder.shippingAddress.city}, {currentOrder.shippingAddress.state}{' '}
-                            {currentOrder.shippingAddress.postalCode}
+                        <Typography variant="body1" paragraph>
+                            {order.shippingAddress.city}, {order.shippingAddress.state} {order.shippingAddress.postalCode}
                         </Typography>
-                        <Typography variant="body2">
-                            {currentOrder.shippingAddress.country}
+                        <Typography variant="body1" paragraph>
+                            {order.shippingAddress.country}
+                        </Typography>
+                        <Typography variant="subtitle2" color="text.secondary" sx={{ mt: 1 }}>
+                            Payment Method
+                        </Typography>
+                        <Typography variant="body1">
+                            {order.paymentMethod}
                         </Typography>
                     </Paper>
                 </Grid>
@@ -221,52 +317,60 @@ const OrderDetailsPage: React.FC = () => {
                         </Typography>
                         <Divider sx={{ mb: 2 }} />
 
-                        {currentOrder.items.map((item: any) => (
-                            <Card key={item._id || item.product._id} sx={{ display: 'flex', mb: 2 }}>
+                        {order.items.map((item) => (
+                            <Card key={item.product._id} sx={{ display: 'flex', mb: 2, boxShadow: 'none', border: '1px solid #eee' }}>
                                 <CardMedia
                                     component="img"
                                     sx={{ width: 100, height: 100, objectFit: 'contain' }}
                                     image={item.product.imageUrl}
                                     alt={item.product.name}
                                 />
-                                <CardContent sx={{ flex: '1 0 auto', display: 'flex', flexDirection: 'column' }}>
-                                    <Typography component="div" variant="h6">
-                                        {item.product.name}
-                                    </Typography>
-                                    <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 1 }}>
-                                        <Typography variant="body2" color="text.secondary">
-                                            Qty: {item.quantity}
-                                        </Typography>
-                                        <Typography variant="body2">
-                                            ${item.price.toFixed(2)} x {item.quantity} = ${(item.price * item.quantity).toFixed(2)}
-                                        </Typography>
-                                    </Box>
+                                <CardContent sx={{ flex: '1 0 auto', py: 1 }}>
+                                    <Grid container>
+                                        <Grid item xs={12} sm={8}>
+                                            <Typography variant="subtitle1" component="div">
+                                                {item.product.name}
+                                            </Typography>
+                                            <Typography variant="body2" color="text.secondary">
+                                                Quantity: {item.quantity}
+                                            </Typography>
+                                        </Grid>
+                                        <Grid item xs={12} sm={4} sx={{ display: 'flex', justifyContent: { sm: 'flex-end' }, mt: { xs: 1, sm: 0 } }}>
+                                            <Typography variant="subtitle1" component="div">
+                                                ${(item.price * item.quantity).toFixed(2)}
+                                            </Typography>
+                                        </Grid>
+                                    </Grid>
                                 </CardContent>
                             </Card>
                         ))}
 
-                        <Divider sx={{ my: 2 }} />
-
-                        <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
-                            <Typography variant="body1">Subtotal</Typography>
-                            <Typography variant="body1">${currentOrder.totalAmount.toFixed(2)}</Typography>
-                        </Box>
-                        <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
-                            <Typography variant="body1">Shipping</Typography>
-                            <Typography variant="body1">Free</Typography>
-                        </Box>
-                        <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
-                            <Typography variant="body1">Tax</Typography>
-                            <Typography variant="body1">Included</Typography>
-                        </Box>
-                        <Divider sx={{ my: 1 }} />
-                        <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-                            <Typography variant="h6">Total</Typography>
-                            <Typography variant="h6">${currentOrder.totalAmount.toFixed(2)}</Typography>
+                        <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', mt: 3 }}>
+                            <Typography variant="subtitle1" gutterBottom>
+                                Subtotal: ${order.totalAmount.toFixed(2)}
+                            </Typography>
+                            <Typography variant="subtitle1" gutterBottom>
+                                Shipping: $0.00
+                            </Typography>
+                            <Typography variant="h6" color="text.primary" sx={{ fontWeight: 600 }}>
+                                Total: ${order.totalAmount.toFixed(2)}
+                            </Typography>
                         </Box>
                     </Paper>
                 </Grid>
             </Grid>
+
+            {/* Notification Snackbar */}
+            <Snackbar
+                open={notification.open}
+                autoHideDuration={6000}
+                onClose={handleCloseNotification}
+                anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+            >
+                <Alert onClose={handleCloseNotification} severity={notification.type} sx={{ width: '100%' }}>
+                    {notification.message}
+                </Alert>
+            </Snackbar>
         </Box>
     );
 };
