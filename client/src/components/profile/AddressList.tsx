@@ -50,8 +50,6 @@ const initialAddressForm: AddressFormData = {
 const AddressList: React.FC = () => {
   const dispatch = useDispatch<AppDispatch>();
   const { addresses, loading, error } = useSelector((state: RootState) => state.user);
-
-  // Use a ref to track if we've already attempted to load addresses
   const hasLoadedRef = useRef(false);
 
   const [openDialog, setOpenDialog] = useState(false);
@@ -60,24 +58,13 @@ const AddressList: React.FC = () => {
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
   const [addressToDelete, setAddressToDelete] = useState<string | null>(null);
 
-  // Log rendering
-  console.log('AddressList rendering:', { addresses, loading, error, hasLoadedRef });
-
-  // Only fetch addresses once when component mounts
+  // Fetch addresses only once when component mounts
   useEffect(() => {
-    if (!hasLoadedRef.current && !loading) {
-      console.log('Fetching addresses once');
+    if (!hasLoadedRef.current) {
       dispatch(fetchUserAddresses());
       hasLoadedRef.current = true;
     }
-  }, [dispatch, loading]);
-
-  // Reset the ref when component unmounts
-  useEffect(() => {
-    return () => {
-      hasLoadedRef.current = false;
-    };
-  }, []);
+  }, []); // Empty dependency array since we only want to fetch once on mount
 
   const handleOpenAddDialog = () => {
     setAddressForm(initialAddressForm);
