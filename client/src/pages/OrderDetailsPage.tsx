@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import {
     Box,
     Typography,
@@ -16,7 +16,16 @@ import {
     Card,
     CardMedia,
     CardContent,
-    Snackbar
+    Snackbar,
+    FormControl,
+    InputLabel,
+    Select,
+    MenuItem,
+    SelectChangeEvent,
+    Dialog,
+    DialogTitle,
+    DialogContent,
+    DialogActions
 } from '@mui/material';
 import { format } from 'date-fns';
 import OrderTracker from '../components/orders/OrderTracker';
@@ -59,6 +68,10 @@ interface Order {
 const OrderDetailsPage: React.FC = () => {
     const { id } = useParams<{ id: string }>();
     const navigate = useNavigate();
+    const location = useLocation();
+
+    // Check if we're in admin mode based on URL path
+    const isAdminMode = location.pathname.includes('/admin/orders');
 
     // Local state
     const [order, setOrder] = useState<Order | null>(null);
@@ -70,6 +83,13 @@ const OrderDetailsPage: React.FC = () => {
         type: 'success' as 'success' | 'error'
     });
     const [dataFetched, setDataFetched] = useState(false);
+    const [userRole, setUserRole] = useState<string | null>(null);
+
+    // Admin state
+    const [statusDialogOpen, setStatusDialogOpen] = useState(false);
+    const [paymentStatusDialogOpen, setPaymentStatusDialogOpen] = useState(false);
+    const [newStatus, setNewStatus] = useState('');
+    const [newPaymentStatus, setNewPaymentStatus] = useState('');
 
     // Fetch order details once
     useEffect(() => {
@@ -84,6 +104,15 @@ const OrderDetailsPage: React.FC = () => {
                     return;
                 }
 
+                // Check user role
+                try {
+                    const userResponse = await api.get('/users/profile');
+                    setUserRole(userResponse.data.role);
+                } catch (err) {
+                    console.error('Error fetching user profile:', err);
+                }
+
+                // Fetch order details
                 const response = await api.get(`/orders/${id}`);
                 setOrder(response.data);
             } catch (err: any) {
@@ -118,6 +147,87 @@ const OrderDetailsPage: React.FC = () => {
         } catch (err: any) {
             console.error('Error cancelling order:', err);
             showNotification('Failed to cancel order', 'error');
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    // Admin functions
+    const handleOpenStatusDialog = () => {
+        if (order) {
+            setNewStatus(order.status);
+            setStatusDialogOpen(true);
+        }
+    };
+
+    const handleCloseStatusDialog = () => {
+        setStatusDialogOpen(false);
+    };
+
+    const handleStatusChange = (e: SelectChangeEvent<string>) => {
+        setNewStatus(e.target.value);
+    };
+
+    const handleUpdateStatus = async () => {
+        if (!id || !newStatus) return;
+
+        setLoading(true);
+        try {
+            await api.put(`/orders/${id}/status`, { status: newStatus });
+
+            // Update local state
+            if (order) {
+                setOrder({
+                    ...order,
+                    status: newStatus
+                });
+            }
+
+            showNotification('Order status updated successfully', 'success');
+            setStatusDialogOpen(false);
+        } catch (err: any) {
+            console.error('Error updating order status:', err);
+            showNotification('Failed to update order status', 'error');
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleOpenPaymentStatusDialog = () => {
+        if (order) {
+            setNewPaymentStatus(order.paymentStatus);
+            setPaymentStatusDialogOpen(true);
+        }
+    };
+
+    const handleClosePaymentStatusDialog = () => {
+        setPaymentStatusDialogOpen(false);
+    };
+
+    const handlePaymentStatusChange = (e: SelectChangeEvent<string>) => {
+        setNewPaymentStatus(e.target.value);
+    };
+
+    const handleUpdatePaymentStatus = async () => {
+        if (!id || !newPaymentStatus) return;
+
+        setLoading(true);
+        try {
+            await api.put(`/orders/${id}/payment`, { paymentStatus: newPaymentStatus });
+
+            // Update local state
+            if (order) {
+                setOrder({
+                    ...order,
+                    paymentStatus: newPaymentStatus
+                });
+            }
+
+            showNotification('Payment status updated successfully', 'success');
+            setPaymentStatusDialogOpen(false);
+        } catch (err: any) {
+            console.error('Error updating payment status:', err);
+            showNotification('Failed to update payment status', 'error');
         } finally {
             setLoading(false);
         }
@@ -210,10 +320,13 @@ const OrderDetailsPage: React.FC = () => {
         <Box sx={{ maxWidth: 1200, mx: 'auto', p: 2 }}>
             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
                 <Typography variant="h4" component="h1">
-                    Order Details
+                    {isAdminMode ? 'Manage Order' : 'Order Details'}
                 </Typography>
-                <Button variant="outlined" onClick={() => navigate('/orders')}>
-                    Back to Orders
+                <Button
+                    variant="outlined"
+                    onClick={() => navigate(isAdminMode ? '/admin/orders' : '/orders')}
+                >
+                    Back to {isAdminMode ? 'All Orders' : 'My Orders'}
                 </Button>
             </Box>
 
@@ -254,24 +367,52 @@ const OrderDetailsPage: React.FC = () => {
                             </ListItem>
                             <ListItem disablePadding sx={{ py: 1 }}>
                                 <ListItemText primary="Status" />
-                                <Chip
-                                    label={order.status.charAt(0).toUpperCase() + order.status.slice(1)}
-                                    color={getStatusColor(order.status) as any}
-                                    size="small"
-                                />
+                                {isAdminMode ? (
+                                    <Chip
+                                        label={order.status.charAt(0).toUpperCase() + order.status.slice(1)}
+                                        color={getStatusColor(order.status) as any}
+                                        size="small"
+                                        onClick={handleOpenStatusDialog}
+                                        sx={{ cursor: 'pointer' }}
+                                    />
+                                ) : (
+                                    <Chip
+                                        label={order.status.charAt(0).toUpperCase() + order.status.slice(1)}
+                                        color={getStatusColor(order.status) as any}
+                                        size="small"
+                                    />
+                                )}
                             </ListItem>
                             <ListItem disablePadding sx={{ py: 1 }}>
                                 <ListItemText primary="Payment" />
-                                <Chip
-                                    label={order.paymentStatus.charAt(0).toUpperCase() + order.paymentStatus.slice(1)}
-                                    color={getPaymentStatusColor(order.paymentStatus) as any}
-                                    size="small"
-                                />
+                                {isAdminMode ? (
+                                    <Chip
+                                        label={order.paymentStatus.charAt(0).toUpperCase() + order.paymentStatus.slice(1)}
+                                        color={getPaymentStatusColor(order.paymentStatus) as any}
+                                        size="small"
+                                        onClick={handleOpenPaymentStatusDialog}
+                                        sx={{ cursor: 'pointer' }}
+                                    />
+                                ) : (
+                                    <Chip
+                                        label={order.paymentStatus.charAt(0).toUpperCase() + order.paymentStatus.slice(1)}
+                                        color={getPaymentStatusColor(order.paymentStatus) as any}
+                                        size="small"
+                                    />
+                                )}
                             </ListItem>
+                            {isAdminMode && order.user && (
+                                <ListItem disablePadding sx={{ py: 1 }}>
+                                    <ListItemText primary="Customer" />
+                                    <Typography variant="body2" color="text.secondary">
+                                        {order.user.name || 'N/A'}
+                                    </Typography>
+                                </ListItem>
+                            )}
                         </List>
 
-                        {/* Show Cancel button only if the order is not delivered or cancelled */}
-                        {order.status !== 'delivered' && order.status !== 'cancelled' && (
+                        {/* Show action buttons based on role and order status */}
+                        {!isAdminMode && order.status !== 'delivered' && order.status !== 'cancelled' && (
                             <Button
                                 variant="outlined"
                                 color="error"
@@ -359,6 +500,66 @@ const OrderDetailsPage: React.FC = () => {
                     </Paper>
                 </Grid>
             </Grid>
+
+            {/* Admin Dialogs */}
+            {isAdminMode && (
+                <>
+                    {/* Update Order Status Dialog */}
+                    <Dialog open={statusDialogOpen} onClose={handleCloseStatusDialog}>
+                        <DialogTitle>Update Order Status</DialogTitle>
+                        <DialogContent>
+                            <FormControl fullWidth sx={{ mt: 2 }}>
+                                <InputLabel id="status-select-label">Status</InputLabel>
+                                <Select
+                                    labelId="status-select-label"
+                                    value={newStatus}
+                                    label="Status"
+                                    onChange={handleStatusChange}
+                                >
+                                    <MenuItem value="pending">Pending</MenuItem>
+                                    <MenuItem value="processing">Processing</MenuItem>
+                                    <MenuItem value="shipped">Shipped</MenuItem>
+                                    <MenuItem value="delivered">Delivered</MenuItem>
+                                    <MenuItem value="cancelled">Cancelled</MenuItem>
+                                </Select>
+                            </FormControl>
+                        </DialogContent>
+                        <DialogActions>
+                            <Button onClick={handleCloseStatusDialog}>Cancel</Button>
+                            <Button onClick={handleUpdateStatus} variant="contained" color="primary" disabled={loading}>
+                                {loading ? <CircularProgress size={24} /> : 'Update'}
+                            </Button>
+                        </DialogActions>
+                    </Dialog>
+
+                    {/* Update Payment Status Dialog */}
+                    <Dialog open={paymentStatusDialogOpen} onClose={handleClosePaymentStatusDialog}>
+                        <DialogTitle>Update Payment Status</DialogTitle>
+                        <DialogContent>
+                            <FormControl fullWidth sx={{ mt: 2 }}>
+                                <InputLabel id="payment-status-select-label">Payment Status</InputLabel>
+                                <Select
+                                    labelId="payment-status-select-label"
+                                    value={newPaymentStatus}
+                                    label="Payment Status"
+                                    onChange={handlePaymentStatusChange}
+                                >
+                                    <MenuItem value="pending">Pending</MenuItem>
+                                    <MenuItem value="paid">Paid</MenuItem>
+                                    <MenuItem value="failed">Failed</MenuItem>
+                                    <MenuItem value="refunded">Refunded</MenuItem>
+                                </Select>
+                            </FormControl>
+                        </DialogContent>
+                        <DialogActions>
+                            <Button onClick={handleClosePaymentStatusDialog}>Cancel</Button>
+                            <Button onClick={handleUpdatePaymentStatus} variant="contained" color="primary" disabled={loading}>
+                                {loading ? <CircularProgress size={24} /> : 'Update'}
+                            </Button>
+                        </DialogActions>
+                    </Dialog>
+                </>
+            )}
 
             {/* Notification Snackbar */}
             <Snackbar
