@@ -23,7 +23,8 @@ import {
 } from '@mui/material';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
-import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
+import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
+import dayjs from 'dayjs';
 import { updateUserProfile } from '../../store/slices/userSlice';
 import { RootState, AppDispatch } from '../../store';
 
@@ -59,7 +60,7 @@ const ProfileInfo: React.FC<ProfileInfoProps> = ({ profile }) => {
   const [changePassword, setChangePassword] = useState(false);
 
   // New profile fields
-  const [birthDate, setBirthDate] = useState<Date | null>(profile?.birthDate ? new Date(profile.birthDate) : null);
+  const [birthDate, setBirthDate] = useState(profile?.birthDate ? dayjs(profile.birthDate) : null);
   const [favoriteCategories, setFavoriteCategories] = useState<string[]>(profile?.favoriteCategories || []);
   const [emailPreferences, setEmailPreferences] = useState({
     newsletter: profile?.emailPreferences?.newsletter ?? true,
@@ -176,7 +177,7 @@ const ProfileInfo: React.FC<ProfileInfoProps> = ({ profile }) => {
             />
           </Grid>
           <Grid item xs={12} sm={6}>
-            <LocalizationProvider dateAdapter={AdapterDateFns}>
+            <LocalizationProvider dateAdapter={AdapterDayjs}>
               <DatePicker
                 label="Birth Date"
                 value={birthDate}
@@ -340,7 +341,7 @@ const ProfileInfo: React.FC<ProfileInfoProps> = ({ profile }) => {
                   setChangePassword(false);
                   setName(profile?.name || '');
                   setEmail(profile?.email || '');
-                  setBirthDate(profile?.birthDate ? new Date(profile.birthDate) : null);
+                  setBirthDate(profile?.birthDate ? dayjs(profile.birthDate) : null);
                   setFavoriteCategories(profile?.favoriteCategories || []);
                   setEmailPreferences({
                     newsletter: profile?.emailPreferences?.newsletter ?? true,
