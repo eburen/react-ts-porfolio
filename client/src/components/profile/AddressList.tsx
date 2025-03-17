@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState, useRef, useCallback } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import {
   Box,
@@ -49,23 +49,35 @@ const initialAddressForm: AddressFormData = {
 
 const AddressList: React.FC = () => {
   const dispatch = useDispatch<AppDispatch>();
-  const { addresses, loading, error } = useSelector((state: RootState) => state.user);
-  const hasLoadedRef = useRef(false);
+  const { addresses = [], loading = false, error = null } = useSelector((state: RootState) => state.user);
+  const [initialized, setInitialized] = useState(false);
 
   const [openDialog, setOpenDialog] = useState(false);
   const [addressForm, setAddressForm] = useState<AddressFormData>(initialAddressForm);
   const [isEditing, setIsEditing] = useState(false);
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
   const [addressToDelete, setAddressToDelete] = useState<string | null>(null);
+  const [localLoading, setLocalLoading] = useState(false);
 
-  // Fetch addresses only once when component mounts
-  useEffect(() => {
-    if (!hasLoadedRef.current) {
-      dispatch(fetchUserAddresses());
-      hasLoadedRef.current = true;
+  // Single fetch function to load addresses
+  const loadAddresses = useCallback(async () => {
+    if (!initialized && !localLoading) {
+      setLocalLoading(true);
+      try {
+        await dispatch(fetchUserAddresses()).unwrap();
+        setInitialized(true);
+      } catch (error) {
+        console.error('Failed to load addresses:', error);
+      } finally {
+        setLocalLoading(false);
+      }
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []); // Empty dependency array since we only want to fetch once on mount
+  }, [dispatch, initialized, localLoading]);
+
+  // Only fetch addresses once when component mounts
+  useEffect(() => {
+    loadAddresses();
+  }, [loadAddresses]);
 
   const handleOpenAddDialog = () => {
     setAddressForm(initialAddressForm);
@@ -74,14 +86,16 @@ const AddressList: React.FC = () => {
   };
 
   const handleOpenEditDialog = (address: any) => {
+    if (!address || typeof address !== 'object') return;
+
     setAddressForm({
-      _id: address._id,
-      street: address.street,
-      city: address.city,
-      state: address.state,
-      postalCode: address.postalCode,
-      country: address.country,
-      isDefault: address.isDefault,
+      _id: address._id || '',
+      street: address.street || '',
+      city: address.city || '',
+      state: address.state || '',
+      postalCode: address.postalCode || '',
+      country: address.country || '',
+      isDefault: !!address.isDefault,
     });
     setIsEditing(true);
     setOpenDialog(true);
@@ -94,48 +108,49 @@ const AddressList: React.FC = () => {
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value, checked, type } = e.target;
-    setAddressForm({
-      ...addressForm,
+    setAddressForm(prev => ({
+      ...prev,
       [name]: type === 'checkbox' ? checked : value,
-    });
+    }));
   };
 
-  const handleSubmitAddress = (e: React.FormEvent) => {
+  const handleSubmitAddress = async (e: React.FormEvent) => {
     e.preventDefault();
+    setLocalLoading(true);
 
-    if (isEditing && addressForm._id) {
-      dispatch(updateUserAddress({
-        id: addressForm._id,
-        address: {
+    try {
+      if (isEditing && addressForm._id) {
+        await dispatch(updateUserAddress({
+          id: addressForm._id,
+          address: {
+            street: addressForm.street,
+            city: addressForm.city,
+            state: addressForm.state,
+            postalCode: addressForm.postalCode,
+            country: addressForm.country,
+            isDefault: addressForm.isDefault,
+          }
+        })).unwrap();
+      } else {
+        await dispatch(addUserAddress({
           street: addressForm.street,
           city: addressForm.city,
           state: addressForm.state,
           postalCode: addressForm.postalCode,
           country: addressForm.country,
           isDefault: addressForm.isDefault,
-        }
-      }))
-        .unwrap()
-        .then(() => {
-          handleCloseDialog();
-        });
-    } else {
-      dispatch(addUserAddress({
-        street: addressForm.street,
-        city: addressForm.city,
-        state: addressForm.state,
-        postalCode: addressForm.postalCode,
-        country: addressForm.country,
-        isDefault: addressForm.isDefault,
-      }))
-        .unwrap()
-        .then(() => {
-          handleCloseDialog();
-        });
+        })).unwrap();
+      }
+      handleCloseDialog();
+    } catch (error) {
+      console.error('Failed to save address:', error);
+    } finally {
+      setLocalLoading(false);
     }
   };
 
   const handleOpenDeleteConfirm = (id: string) => {
+    if (!id) return;
     setAddressToDelete(id);
     setDeleteConfirmOpen(true);
   };
@@ -145,15 +160,25 @@ const AddressList: React.FC = () => {
     setAddressToDelete(null);
   };
 
-  const handleDeleteAddress = () => {
-    if (addressToDelete) {
-      dispatch(deleteUserAddress(addressToDelete))
-        .unwrap()
-        .then(() => {
-          handleCloseDeleteConfirm();
-        });
+  const handleDeleteAddress = async () => {
+    if (!addressToDelete) return;
+
+    setLocalLoading(true);
+    try {
+      await dispatch(deleteUserAddress(addressToDelete)).unwrap();
+      handleCloseDeleteConfirm();
+    } catch (error) {
+      console.error('Failed to delete address:', error);
+    } finally {
+      setLocalLoading(false);
     }
   };
+
+  // Use combined loading state
+  const isLoading = loading || localLoading;
+
+  // Safe address data
+  const safeAddresses = Array.isArray(addresses) ? addresses : [];
 
   return (
     <Box>
@@ -163,6 +188,7 @@ const AddressList: React.FC = () => {
           variant="contained"
           startIcon={<AddIcon />}
           onClick={handleOpenAddDialog}
+          disabled={isLoading}
         >
           Add New Address
         </Button>
@@ -174,17 +200,17 @@ const AddressList: React.FC = () => {
         </Alert>
       )}
 
-      {loading ? (
+      {isLoading ? (
         <Box sx={{ display: 'flex', justifyContent: 'center', my: 4 }}>
           <CircularProgress />
         </Box>
-      ) : !addresses || addresses.length === 0 ? (
+      ) : safeAddresses.length === 0 ? (
         <Typography variant="body1" color="text.secondary" sx={{ my: 4, textAlign: 'center' }}>
           You don't have any saved addresses yet.
         </Typography>
       ) : (
         <Grid container spacing={3}>
-          {Array.isArray(addresses) && addresses.map((address) => (
+          {safeAddresses.map((address) => (
             <Grid item xs={12} md={6} key={address._id}>
               <Card variant="outlined">
                 <CardContent>
@@ -207,12 +233,14 @@ const AddressList: React.FC = () => {
                   <IconButton
                     color="primary"
                     onClick={() => handleOpenEditDialog(address)}
+                    disabled={isLoading}
                   >
                     <EditIcon />
                   </IconButton>
                   <IconButton
                     color="error"
                     onClick={() => handleOpenDeleteConfirm(address._id)}
+                    disabled={isLoading}
                   >
                     <DeleteIcon />
                   </IconButton>
@@ -294,9 +322,9 @@ const AddressList: React.FC = () => {
             </Grid>
           </DialogContent>
           <DialogActions>
-            <Button onClick={handleCloseDialog}>Cancel</Button>
-            <Button type="submit" variant="contained" disabled={loading}>
-              {loading ? <CircularProgress size={24} /> : 'Save'}
+            <Button onClick={handleCloseDialog} disabled={isLoading}>Cancel</Button>
+            <Button type="submit" variant="contained" disabled={isLoading}>
+              {isLoading ? <CircularProgress size={24} /> : 'Save'}
             </Button>
           </DialogActions>
         </form>
@@ -309,9 +337,9 @@ const AddressList: React.FC = () => {
           <Typography>Are you sure you want to delete this address?</Typography>
         </DialogContent>
         <DialogActions>
-          <Button onClick={handleCloseDeleteConfirm}>Cancel</Button>
-          <Button onClick={handleDeleteAddress} color="error" variant="contained">
-            {loading ? <CircularProgress size={24} /> : 'Delete'}
+          <Button onClick={handleCloseDeleteConfirm} disabled={isLoading}>Cancel</Button>
+          <Button onClick={handleDeleteAddress} color="error" variant="contained" disabled={isLoading}>
+            {isLoading ? <CircularProgress size={24} /> : 'Delete'}
           </Button>
         </DialogActions>
       </Dialog>

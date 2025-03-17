@@ -38,8 +38,16 @@ export const userService = {
   getAddresses: async (): Promise<any> => {
     try {
       const response = await api.get('/users/addresses');
+      
+      // Ensure we're returning an array
+      if (!response.data || !Array.isArray(response.data)) {
+        console.warn('Expected address data to be an array but got:', typeof response.data);
+        return [];
+      }
+      
       return response.data;
     } catch (error) {
+      console.error('Error fetching addresses:', error);
       throw error;
     }
   },

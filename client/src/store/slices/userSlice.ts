@@ -184,11 +184,14 @@ const userSlice = createSlice({
     });
     builder.addCase(fetchUserAddresses.fulfilled, (state, action: PayloadAction<Address[]>) => {
       state.loading = false;
-      state.addresses = action.payload;
+      // Ensure addresses is always an array
+      state.addresses = Array.isArray(action.payload) ? action.payload : [];
     });
     builder.addCase(fetchUserAddresses.rejected, (state, action) => {
       state.loading = false;
       state.error = action.payload as string;
+      // Initialize addresses as empty array on error
+      state.addresses = [];
     });
 
     // Add user address
