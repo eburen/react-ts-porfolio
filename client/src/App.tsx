@@ -149,6 +149,12 @@ function App() {
                             </ProtectedRoute>
                         } />
 
+                        <Route path="/admin/orders/:id" element={
+                            <ProtectedRoute requireAdmin>
+                                <OrderDetailsPage />
+                            </ProtectedRoute>
+                        } />
+
                         <Route path="/cart" element={<CartPage />} />
 
                         <Route path="/wishlist" element={

@@ -336,7 +336,7 @@ const OrderManagementPage: React.FC = () => {
                                             <Button
                                                 variant="outlined"
                                                 size="small"
-                                                onClick={() => navigate(`/orders/${order._id}`)}
+                                                onClick={() => navigate(`/admin/orders/${order._id}`)}
                                             >
                                                 View Details
                                             </Button>
