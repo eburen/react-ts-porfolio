@@ -172,6 +172,14 @@ export const updatePaymentStatus = async (req: Request, res: Response) => {
       return res.status(400).json({ message: 'Payment status is required' });
     }
 
+    // Validate payment status
+    const validStatuses = ['pending', 'paid', 'failed', 'refunded'];
+    if (!validStatuses.includes(paymentStatus)) {
+      return res.status(400).json({ 
+        message: `Invalid payment status. Must be one of: ${validStatuses.join(', ')}` 
+      });
+    }
+
     const order = await Order.findById(req.params.id);
     
     if (!order) {
@@ -180,15 +188,19 @@ export const updatePaymentStatus = async (req: Request, res: Response) => {
 
     order.paymentStatus = paymentStatus;
     
-    // If payment is completed, update the paid date
-    if (paymentStatus === 'completed') {
+    // If payment is paid, update the paid date
+    if (paymentStatus === 'paid') {
       order.paidAt = new Date();
+    } else if (paymentStatus === 'refunded' || paymentStatus === 'failed') {
+      // Clear the paid date if payment is refunded or failed
+      order.paidAt = undefined;
     }
 
     const updatedOrder = await order.save();
 
     res.json(updatedOrder);
   } catch (error: any) {
+    console.error('Error updating payment status:', error);
     res.status(500).json({ message: error.message });
   }
 };
