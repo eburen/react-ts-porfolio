@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef, useCallback } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import {
   Box,
@@ -17,16 +17,23 @@ import {
   FormControlLabel,
   Checkbox,
   IconButton,
-  Alert
+  Alert,
+  Snackbar
 } from '@mui/material';
 import { Delete as DeleteIcon, Edit as EditIcon, Add as AddIcon } from '@mui/icons-material';
-import {
-  fetchUserAddresses,
-  addUserAddress,
-  updateUserAddress,
-  deleteUserAddress
-} from '../../store/slices/userSlice';
 import { RootState, AppDispatch } from '../../store';
+import api from '../../services/api';
+
+// Define our interfaces
+interface Address {
+  _id: string;
+  street: string;
+  city: string;
+  state: string;
+  postalCode: string;
+  country: string;
+  isDefault: boolean;
+}
 
 interface AddressFormData {
   _id?: string;
@@ -38,179 +45,207 @@ interface AddressFormData {
   isDefault: boolean;
 }
 
-const initialAddressForm: AddressFormData = {
+const initialFormState: AddressFormData = {
   street: '',
   city: '',
   state: '',
   postalCode: '',
   country: '',
-  isDefault: false,
+  isDefault: false
 };
 
+// The component with simplified state management
 const AddressList: React.FC = () => {
-  const dispatch = useDispatch<AppDispatch>();
-  const { addresses = [], loading = false, error = null } = useSelector((state: RootState) => state.user);
-  const [initialized, setInitialized] = useState(false);
-
-  const [openDialog, setOpenDialog] = useState(false);
-  const [addressForm, setAddressForm] = useState<AddressFormData>(initialAddressForm);
+  // Component state
+  const [addresses, setAddresses] = useState<Address[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [formData, setFormData] = useState<AddressFormData>(initialFormState);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
   const [addressToDelete, setAddressToDelete] = useState<string | null>(null);
-  const [localLoading, setLocalLoading] = useState(false);
+  const [notification, setNotification] = useState({ show: false, message: '', type: 'success' });
+  const [dataFetched, setDataFetched] = useState(false);
 
-  // Single fetch function to load addresses
-  const loadAddresses = useCallback(async () => {
-    if (!initialized && !localLoading) {
-      setLocalLoading(true);
-      try {
-        await dispatch(fetchUserAddresses()).unwrap();
-        setInitialized(true);
-      } catch (error) {
-        console.error('Failed to load addresses:', error);
-      } finally {
-        setLocalLoading(false);
-      }
-    }
-  }, [dispatch, initialized, localLoading]);
-
-  // Only fetch addresses once when component mounts
+  // Load addresses only once when component mounts
   useEffect(() => {
-    loadAddresses();
-  }, [loadAddresses]);
+    // Prevent duplicate fetches
+    if (dataFetched) return;
 
-  const handleOpenAddDialog = () => {
-    setAddressForm(initialAddressForm);
-    setIsEditing(false);
-    setOpenDialog(true);
-  };
+    const fetchAddresses = async () => {
+      setLoading(true);
+      setError(null);
+      try {
+        const response = await api.get('/users/addresses');
+        if (response.data && Array.isArray(response.data)) {
+          setAddresses(response.data);
+        } else {
+          setAddresses([]);
+          console.warn('Expected address data to be an array');
+        }
+      } catch (err: any) {
+        console.error('Error fetching addresses:', err);
+        setError(err.response?.data?.message || 'Failed to load addresses');
+        setAddresses([]);
+      } finally {
+        setLoading(false);
+        setDataFetched(true);
+      }
+    };
 
-  const handleOpenEditDialog = (address: any) => {
-    if (!address || typeof address !== 'object') return;
+    fetchAddresses();
+  }, [dataFetched]); // Only depend on dataFetched flag
 
-    setAddressForm({
-      _id: address._id || '',
-      street: address.street || '',
-      city: address.city || '',
-      state: address.state || '',
-      postalCode: address.postalCode || '',
-      country: address.country || '',
-      isDefault: !!address.isDefault,
-    });
-    setIsEditing(true);
-    setOpenDialog(true);
-  };
-
-  const handleCloseDialog = () => {
-    setOpenDialog(false);
-    setAddressForm(initialAddressForm);
-  };
-
+  // Form handlers
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value, checked, type } = e.target;
-    setAddressForm(prev => ({
-      ...prev,
-      [name]: type === 'checkbox' ? checked : value,
-    }));
+    setFormData({
+      ...formData,
+      [name]: type === 'checkbox' ? checked : value
+    });
   };
 
-  const handleSubmitAddress = async (e: React.FormEvent) => {
+  const openAddDialog = () => {
+    setFormData(initialFormState);
+    setIsEditing(false);
+    setIsDialogOpen(true);
+  };
+
+  const openEditDialog = (address: Address) => {
+    setFormData({
+      _id: address._id,
+      street: address.street,
+      city: address.city,
+      state: address.state,
+      postalCode: address.postalCode,
+      country: address.country,
+      isDefault: address.isDefault
+    });
+    setIsEditing(true);
+    setIsDialogOpen(true);
+  };
+
+  const closeDialog = () => {
+    setIsDialogOpen(false);
+  };
+
+  const showNotification = (message: string, type: 'success' | 'error') => {
+    setNotification({
+      show: true,
+      message,
+      type
+    });
+  };
+
+  const closeNotification = () => {
+    setNotification({
+      ...notification,
+      show: false
+    });
+  };
+
+  // API calls for CRUD operations
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setLocalLoading(true);
+    setLoading(true);
+    setError(null);
 
     try {
-      if (isEditing && addressForm._id) {
-        await dispatch(updateUserAddress({
-          id: addressForm._id,
-          address: {
-            street: addressForm.street,
-            city: addressForm.city,
-            state: addressForm.state,
-            postalCode: addressForm.postalCode,
-            country: addressForm.country,
-            isDefault: addressForm.isDefault,
-          }
-        })).unwrap();
+      if (isEditing && formData._id) {
+        // Update existing address
+        const response = await api.put(`/users/addresses/${formData._id}`, formData);
+
+        // Update local state
+        setAddresses(prev =>
+          prev.map(addr => addr._id === formData._id ? response.data : addr)
+        );
+        showNotification('Address updated successfully', 'success');
       } else {
-        await dispatch(addUserAddress({
-          street: addressForm.street,
-          city: addressForm.city,
-          state: addressForm.state,
-          postalCode: addressForm.postalCode,
-          country: addressForm.country,
-          isDefault: addressForm.isDefault,
-        })).unwrap();
+        // Add new address
+        const response = await api.post('/users/addresses', formData);
+
+        // Update local state
+        setAddresses(prev => [...prev, response.data]);
+        showNotification('Address added successfully', 'success');
       }
-      handleCloseDialog();
-    } catch (error) {
-      console.error('Failed to save address:', error);
+
+      closeDialog();
+    } catch (err: any) {
+      console.error('Error saving address:', err);
+      setError(err.response?.data?.message || 'Failed to save address');
+      showNotification('Failed to save address', 'error');
     } finally {
-      setLocalLoading(false);
+      setLoading(false);
     }
   };
 
-  const handleOpenDeleteConfirm = (id: string) => {
-    if (!id) return;
+  const openDeleteConfirm = (id: string) => {
     setAddressToDelete(id);
     setDeleteConfirmOpen(true);
   };
 
-  const handleCloseDeleteConfirm = () => {
-    setDeleteConfirmOpen(false);
+  const closeDeleteConfirm = () => {
     setAddressToDelete(null);
+    setDeleteConfirmOpen(false);
   };
 
-  const handleDeleteAddress = async () => {
+  const handleDelete = async () => {
     if (!addressToDelete) return;
 
-    setLocalLoading(true);
+    setLoading(true);
+    setError(null);
+
     try {
-      await dispatch(deleteUserAddress(addressToDelete)).unwrap();
-      handleCloseDeleteConfirm();
-    } catch (error) {
-      console.error('Failed to delete address:', error);
+      await api.delete(`/users/addresses/${addressToDelete}`);
+
+      // Update local state
+      setAddresses(prev => prev.filter(addr => addr._id !== addressToDelete));
+      showNotification('Address deleted successfully', 'success');
+      closeDeleteConfirm();
+    } catch (err: any) {
+      console.error('Error deleting address:', err);
+      setError(err.response?.data?.message || 'Failed to delete address');
+      showNotification('Failed to delete address', 'error');
     } finally {
-      setLocalLoading(false);
+      setLoading(false);
     }
   };
 
-  // Use combined loading state
-  const isLoading = loading || localLoading;
-
-  // Safe address data
-  const safeAddresses = Array.isArray(addresses) ? addresses : [];
-
   return (
     <Box>
+      {/* Header with Add button */}
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
         <Typography variant="h6">My Addresses</Typography>
         <Button
           variant="contained"
           startIcon={<AddIcon />}
-          onClick={handleOpenAddDialog}
-          disabled={isLoading}
+          onClick={openAddDialog}
+          disabled={loading}
         >
           Add New Address
         </Button>
       </Box>
 
+      {/* Error display */}
       {error && (
         <Alert severity="error" sx={{ mb: 3 }}>
           {error}
         </Alert>
       )}
 
-      {isLoading ? (
+      {/* Content section */}
+      {loading && !addresses.length ? (
         <Box sx={{ display: 'flex', justifyContent: 'center', my: 4 }}>
           <CircularProgress />
         </Box>
-      ) : safeAddresses.length === 0 ? (
+      ) : addresses.length === 0 ? (
         <Typography variant="body1" color="text.secondary" sx={{ my: 4, textAlign: 'center' }}>
           You don't have any saved addresses yet.
         </Typography>
       ) : (
         <Grid container spacing={3}>
-          {safeAddresses.map((address) => (
+          {addresses.map((address) => (
             <Grid item xs={12} md={6} key={address._id}>
               <Card variant="outlined">
                 <CardContent>
@@ -232,15 +267,15 @@ const AddressList: React.FC = () => {
                 <CardActions>
                   <IconButton
                     color="primary"
-                    onClick={() => handleOpenEditDialog(address)}
-                    disabled={isLoading}
+                    onClick={() => openEditDialog(address)}
+                    disabled={loading}
                   >
                     <EditIcon />
                   </IconButton>
                   <IconButton
                     color="error"
-                    onClick={() => handleOpenDeleteConfirm(address._id)}
-                    disabled={isLoading}
+                    onClick={() => openDeleteConfirm(address._id)}
+                    disabled={loading}
                   >
                     <DeleteIcon />
                   </IconButton>
@@ -251,10 +286,10 @@ const AddressList: React.FC = () => {
         </Grid>
       )}
 
-      {/* Add/Edit Address Dialog */}
-      <Dialog open={openDialog} onClose={handleCloseDialog} maxWidth="sm" fullWidth>
+      {/* Add/Edit Form Dialog */}
+      <Dialog open={isDialogOpen} onClose={closeDialog} maxWidth="sm" fullWidth>
         <DialogTitle>{isEditing ? 'Edit Address' : 'Add New Address'}</DialogTitle>
-        <form onSubmit={handleSubmitAddress}>
+        <form onSubmit={handleSubmit}>
           <DialogContent>
             <Grid container spacing={2}>
               <Grid item xs={12}>
@@ -262,7 +297,7 @@ const AddressList: React.FC = () => {
                   fullWidth
                   label="Street Address"
                   name="street"
-                  value={addressForm.street}
+                  value={formData.street}
                   onChange={handleInputChange}
                   required
                 />
@@ -272,7 +307,7 @@ const AddressList: React.FC = () => {
                   fullWidth
                   label="City"
                   name="city"
-                  value={addressForm.city}
+                  value={formData.city}
                   onChange={handleInputChange}
                   required
                 />
@@ -282,7 +317,7 @@ const AddressList: React.FC = () => {
                   fullWidth
                   label="State/Province"
                   name="state"
-                  value={addressForm.state}
+                  value={formData.state}
                   onChange={handleInputChange}
                   required
                 />
@@ -292,7 +327,7 @@ const AddressList: React.FC = () => {
                   fullWidth
                   label="Postal Code"
                   name="postalCode"
-                  value={addressForm.postalCode}
+                  value={formData.postalCode}
                   onChange={handleInputChange}
                   required
                 />
@@ -302,7 +337,7 @@ const AddressList: React.FC = () => {
                   fullWidth
                   label="Country"
                   name="country"
-                  value={addressForm.country}
+                  value={formData.country}
                   onChange={handleInputChange}
                   required
                 />
@@ -311,7 +346,7 @@ const AddressList: React.FC = () => {
                 <FormControlLabel
                   control={
                     <Checkbox
-                      checked={addressForm.isDefault}
+                      checked={formData.isDefault}
                       onChange={handleInputChange}
                       name="isDefault"
                     />
@@ -322,27 +357,43 @@ const AddressList: React.FC = () => {
             </Grid>
           </DialogContent>
           <DialogActions>
-            <Button onClick={handleCloseDialog} disabled={isLoading}>Cancel</Button>
-            <Button type="submit" variant="contained" disabled={isLoading}>
-              {isLoading ? <CircularProgress size={24} /> : 'Save'}
+            <Button onClick={closeDialog} disabled={loading}>
+              Cancel
+            </Button>
+            <Button type="submit" variant="contained" color="primary" disabled={loading}>
+              {loading ? <CircularProgress size={24} /> : (isEditing ? 'Save Changes' : 'Add Address')}
             </Button>
           </DialogActions>
         </form>
       </Dialog>
 
       {/* Delete Confirmation Dialog */}
-      <Dialog open={deleteConfirmOpen} onClose={handleCloseDeleteConfirm}>
-        <DialogTitle>Delete Address</DialogTitle>
+      <Dialog open={deleteConfirmOpen} onClose={closeDeleteConfirm}>
+        <DialogTitle>Confirm Delete</DialogTitle>
         <DialogContent>
           <Typography>Are you sure you want to delete this address?</Typography>
         </DialogContent>
         <DialogActions>
-          <Button onClick={handleCloseDeleteConfirm} disabled={isLoading}>Cancel</Button>
-          <Button onClick={handleDeleteAddress} color="error" variant="contained" disabled={isLoading}>
-            {isLoading ? <CircularProgress size={24} /> : 'Delete'}
+          <Button onClick={closeDeleteConfirm} disabled={loading}>
+            Cancel
+          </Button>
+          <Button onClick={handleDelete} color="error" disabled={loading}>
+            {loading ? <CircularProgress size={24} /> : 'Delete'}
           </Button>
         </DialogActions>
       </Dialog>
+
+      {/* Notification Snackbar */}
+      <Snackbar
+        open={notification.show}
+        autoHideDuration={6000}
+        onClose={closeNotification}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+      >
+        <Alert onClose={closeNotification} severity={notification.type as 'success' | 'error'} sx={{ width: '100%' }}>
+          {notification.message}
+        </Alert>
+      </Snackbar>
     </Box>
   );
 };
