@@ -5,6 +5,15 @@ interface UpdateProfileData {
   email?: string;
   password?: string;
   currentPassword?: string;
+  birthDate?: Date | null;
+  favoriteCategories?: string[];
+  emailPreferences?: {
+    newsletter?: boolean;
+    promotions?: boolean;
+    productUpdates?: boolean;
+  };
+  phoneNumber?: string;
+  bio?: string;
 }
 
 interface Address {
@@ -28,12 +37,9 @@ export const userService = {
 
   getAddresses: async (): Promise<any> => {
     try {
-      console.log('userService.getAddresses: Making API call');
       const response = await api.get('/users/addresses');
-      console.log('userService.getAddresses: Success', response.data);
       return response.data;
     } catch (error) {
-      console.error('userService.getAddresses: Error', error);
       throw error;
     }
   },

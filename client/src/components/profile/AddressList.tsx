@@ -64,6 +64,7 @@ const AddressList: React.FC = () => {
       dispatch(fetchUserAddresses());
       hasLoadedRef.current = true;
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []); // Empty dependency array since we only want to fetch once on mount
 
   const handleOpenAddDialog = () => {

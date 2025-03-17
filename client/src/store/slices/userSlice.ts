@@ -65,22 +65,11 @@ export const updateUserProfile = createAsyncThunk(
 
 export const fetchUserAddresses = createAsyncThunk(
   'user/fetchAddresses',
-  async (_, { rejectWithValue, getState }) => {
+  async (_, { rejectWithValue }) => {
     try {
-      console.log('Thunk: fetchUserAddresses - Started');
-      
-      // Check if we already have addresses loaded
-      const state = getState() as { user: UserState };
-      if (state.user.addresses && state.user.addresses.length > 0 && !state.user.loading) {
-        console.log('Thunk: fetchUserAddresses - Already have addresses, skipping');
-        return state.user.addresses;
-      }
-      
       const result = await userService.getAddresses();
-      console.log('Thunk: fetchUserAddresses - Success', result);
       return result;
     } catch (error: any) {
-      console.error('Thunk: fetchUserAddresses - Error', error);
       return rejectWithValue(error.response?.data?.message || 'Failed to fetch addresses');
     }
   }
