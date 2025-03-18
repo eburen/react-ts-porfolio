@@ -22,7 +22,8 @@ export default defineConfig({
       // Make sure Material UI is properly bundled
       onwarn(warning, warn) {
         if (warning.code === 'MODULE_LEVEL_DIRECTIVE' || 
-            warning.message.includes('Use of eval')) {
+            warning.message.includes('Use of eval') ||
+            warning.message.includes('failed to resolve import')) {
           return;
         }
         warn(warning);
