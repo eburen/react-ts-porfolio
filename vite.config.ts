@@ -10,6 +10,8 @@ export default defineConfig({
       '@': path.resolve(__dirname, './src'),
       '@client': path.resolve(__dirname, './client/src'),
     },
+    // Ensure node modules are resolved from the project root
+    preserveSymlinks: true
   },
   root: './client',
   build: {
