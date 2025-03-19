@@ -1,6 +1,12 @@
 {
-  "buildCommand": "npm run install-all && npm run build",
+  "buildCommand": "npm install --legacy-peer-deps && npm run build",
   "outputDirectory": "dist",
-  "installCommand": "npm run install-all",
-  "rewrites": [{ "source": "/(.*)", "destination": "/" }]
+  "installCommand": "npm install --legacy-peer-deps",
+  "rewrites": [
+    {
+      "source": "/api/(.*)",
+      "destination": "https://react-ts-porfolio-api.vercel.app/api/$1"
+    },
+    { "source": "/(.*)", "destination": "/" }
+  ]
 }
